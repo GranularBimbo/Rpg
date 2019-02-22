@@ -22,7 +22,7 @@ import com.window.Display;
 public class Game implements ActionListener {
 //caughtChecker will see if caught is under 10 for a certain amount of time(since it still catches you while above 9)
 	public int WIDTH, HEIGHT, caught, caughtChecker, pressDelay, skillPoints, sneakBonus, intBonus, strBonus, speechBonus, luckBonus, hpBonus;
-	public boolean running, playerMenuVisible;
+	public boolean running, playerMenuVisible, wanted;
 	public KeyManager keymanager = new KeyManager();
 	public MouseManager mousemanager = new MouseManager();
 	public Graphics g;
@@ -103,12 +103,13 @@ public class Game implements ActionListener {
 	Player player;
 	public String state;
 	Display display;
+	Console console;
 	public String location;
 	public boolean creatingCharacter;
 	
 	public Game(int w, int h) {
 		display = new Display(w,h);
-		Timer timer = new Timer(20, this);
+		Timer timer = new Timer(20, this);	//idk how this timer works i found it in a youtube video lol
 		player = new Player();
 		cursor = new ImageManager("assets/img/cursor.png");
 		
@@ -159,6 +160,7 @@ public class Game implements ActionListener {
 		running = true;
 		state = "main menu";
 		playerMenuVisible = false;
+		console = new Console(32*5,32*19); 
 		newGameButton = new Button(false,WIDTH/2-150,HEIGHT/2-200,300,100); //false is if it's lit up or not
 		raceLeft = new Button(false,200,215,50,50);
 		raceRight = new Button(false,260,215,50,50);
@@ -178,6 +180,7 @@ public class Game implements ActionListener {
 		classRight = new Button(false,480,470,50,50);
 		doneButton = new Button(false,780,620,300,100);
 		creatingCharacter = false;
+		wanted = false;
 		
 		armorx = 32*10;
 		armory = 32*4;
@@ -191,6 +194,7 @@ public class Game implements ActionListener {
 		
 		location = "town";	//placeholder, eventually spawning location will be in the character creation menu
 		
+		//also got this cursor stuff from youtube
 		// Transparent 16 x 16 pixel cursor image.
 		BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
 
@@ -209,6 +213,7 @@ public class Game implements ActionListener {
 		luckBonus = 0;
 		hpBonus = 0;
 		
+		//adds the keymanager and mousemanager to the window so it can be used in-game
 		display.getJFrame().addKeyListener(keymanager);
 		display.getJFrame().addMouseListener(mousemanager);
 		display.getJFrame().addMouseMotionListener(mousemanager);
@@ -232,7 +237,7 @@ public class Game implements ActionListener {
 	}
 	
 	public void update(Graphics graphics) {
-		if(state == "game") {
+		if(state == "game") {	//graphics that show while you are in the game
 			//draws the location
 			if(location == "town") {
 				g.drawImage(town.guy,0,0,null);
@@ -274,11 +279,35 @@ public class Game implements ActionListener {
 			}
 			
 			//draws the in-game UI
+			g.setColor(Color.gray.darker());
+			g.fillRect(2, HEIGHT - 149, WIDTH - 4, 148);
+			
 			g.setColor(Color.black);
 			g.drawRect(2, HEIGHT - 149, WIDTH - 4, 148);
+			g.drawRect(2, HEIGHT - 149, 32*5 - 10, 32*4);
 			
-			g.setColor(Color.gray.darker());
-			g.fillRect(3, HEIGHT - 148, WIDTH - 5, 147);
+			if(wanted) {
+				console.showText(">> Theft Failed", g);
+			}
+			else {
+				if(caughtChecker >= 0 && caught > 9) {
+					console.showText(">> Theft Succeeded", g);
+				}
+			}
+			
+			//health bar
+			g.setColor(Color.red);
+			//fills the bar based with red on your hp, the math extends the bar so it's not too small
+			g.fillRect(3, HEIGHT - 20, (player.hp * (player.hp / 15)), 15);
+			
+			g.setColor(Color.black);
+			//the math here sets the maximum width of the bar based on your max hp
+			g.drawRect(3, HEIGHT - 20, (player.maxHP * (player.maxHP / 15)), 15);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,15));
+			//sets text that displays your hp in the middle of the health bar
+			g.drawString("Hp: " + player.hp + "/" + player.maxHP, ((player.maxHP*(player.maxHP/15))/2)-30, HEIGHT-8);
+			
 			
 			//shows the box with the description of each building when the mouse is over it
 			if(location == "town") {
@@ -347,7 +376,7 @@ public class Game implements ActionListener {
 				}
 			}
 			
-			//shows the player stat menu and inventory
+			//shows the player stat menu
 			if(playerMenuVisible) {
 				g.setColor(Color.gray.darker());
 				g.fillRect(32*18, 32*6, 200, 300);
@@ -356,6 +385,14 @@ public class Game implements ActionListener {
 				g.setColor(Color.black);
 				g.drawRect(32*18, 32*6, 200, 300);
 				g.drawRect(32*18, 32*6, 64, 64);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,18));
+				g.drawString("Hp: " + player.maxHP, 32*18 + 3, 32*6 + 80);
+				g.drawString("Str: " + player.str, 32*18 + 3, 32*6 + 110);
+				g.drawString("Luck: " + player.luck, 32*18 + 3, 32*6 + 140);
+				g.drawString("Int: " + player.Int, 32*18 + 3, 32*6 + 170);
+				g.drawString("Sneak: " + player.sneak, 32*18 + 3, 32*6 + 200);
+				g.drawString("Speech: " + player.speech, 32*18 + 3, 32*6 + 230);
 				
 				//shows the face
 				if(player.race == "orc") {
@@ -381,7 +418,7 @@ public class Game implements ActionListener {
 		}
 		
 		
-		if(state == "main menu") {
+		if(state == "main menu") {	//graphics you see while in the main menu
 			//gray background until i have a main menu image
 			g.setColor(Color.gray);
 			g.fillRect(0, 0, WIDTH, HEIGHT);
@@ -491,7 +528,7 @@ public class Game implements ActionListener {
 						hpLeft.x = -50;
 					}
 					else {
-						//puts both in they're original positions
+						//puts both in their original positions
 						hpLeft.x = 120;
 						hpRight.x = 180;
 					}
@@ -509,7 +546,7 @@ public class Game implements ActionListener {
 						strLeft.x = -50;
 					}
 					else {
-						//puts both in they're original positions
+						//puts both in theirr original positions
 						strLeft.x = 120;
 						strRight.x = 180;
 					}
@@ -527,7 +564,7 @@ public class Game implements ActionListener {
 						luckLeft.x = -50;
 					}
 					else {
-						//puts both in they're original positions
+						//puts both in their original positions
 						luckLeft.x = 160;
 						luckRight.x = 220;
 					}
@@ -545,7 +582,7 @@ public class Game implements ActionListener {
 						IntLeft.x = -50;
 					}
 					else {
-						//puts both in they're original positions
+						//puts both in their original positions
 						IntLeft.x = 120;
 						IntRight.x = 180;
 					}
@@ -563,7 +600,7 @@ public class Game implements ActionListener {
 						sneakLeft.x = -50;
 					}
 					else {
-						//puts both in they're original positions
+						//puts both in their original positions
 						sneakLeft.x = 170;
 						sneakRight.x = 230;
 					}
@@ -581,7 +618,7 @@ public class Game implements ActionListener {
 						speechLeft.x = -50;	//moves the left arrow so both aren't clicked at the same time
 					}
 					else {
-						//puts both in they're original positions
+						//puts both in their original positions
 						speechLeft.x = 190;
 						speechRight.x = 250;
 					}
@@ -700,29 +737,34 @@ public class Game implements ActionListener {
 				}
 			}
 		}
+		//shows the custom cursor image at the mouse's x and y
 		g.drawImage(cursor.guy, mousemanager.mousex, mousemanager.mousey, null);
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		if(pressDelay > 0) {	//delay so the stat doesn't change multiple times from one click
+	public void actionPerformed(ActionEvent arg0) {	//all game logic goes in here
+		if(pressDelay > 0) {	//delay so buttons dont regester like 50 clicks instead of just 1
 			pressDelay--;
 		}
 		
+		//armor restock timer and caught checking timer
 		if(armorRestock > 0) {
 			armorRestock--;
 		}
 		
+		//it is used to see if caught is below 10 for about 1 second
 		if(caughtChecker > 0) {
 			caughtChecker--;
 		}
 		
 		//caught is chosen randomly based on the player's sneak stat, this catches you if it is below 10
-		//so if you have 10 sneak you have a 10% or 1/10 chance to not get caught
+		//so if you have 10 sneak you have a 10% or 1/10 chance to get away with it
 		if(caught < 10 && caughtChecker == 0) {
-			System.out.println("Hey put that back!");
+			caughtChecker = -3;
+			wanted = true;
 		}
 		
+		//makes the armor dissapear after it's clicked
 		if(mousemanager.mousex > armorx && mousemanager.mousex < armorx + armorw && mousemanager.mousey > armory && mousemanager.mousey < armory + armorh) {
 			if(mousemanager.isLeftPressed()) {
 				armorVisible = false;
@@ -733,7 +775,7 @@ public class Game implements ActionListener {
 			}
 		}
 		
-		if(state == "main menu") {
+		if(state == "main menu") {	//main menu logic
 			//adds class bonuses to stats
 			if(player.Class == "thief") {
 				sneakBonus = 5;
@@ -764,7 +806,7 @@ public class Game implements ActionListener {
 		}
 		
 		if(state == "main menu") {
-			//body parts
+			//decides whether to show orc or human in-game
 			if(player.race == "orc") {
 				head = new ImageManager("assets/img/heads/orcHead.png");
 				torso = new ImageManager("assets/img/torsos/orcBody.png");
@@ -778,6 +820,7 @@ public class Game implements ActionListener {
 				legs = new ImageManager("assets/img/legs/humanLegs.png");
 			}
 			
+			//button logic
 			//checks if the mouse is touching the button
 			if(mousemanager.mousex >= newGameButton.x && mousemanager.mousex <= newGameButton.x + newGameButton.w && mousemanager.mousey >= newGameButton.y && mousemanager.mousey <= newGameButton.y + newGameButton.h) {
 				newGameButton.active = true;
@@ -1057,6 +1100,13 @@ public class Game implements ActionListener {
 				
 				if(mousemanager.isLeftPressed() && pressDelay == 0) {
 					if(skillPoints == 0) {
+						player.maxHP += hpBonus;
+						player.hp = player.maxHP;
+						player.str += strBonus;
+						player.luck += luckBonus;
+						player.Int += intBonus;
+						player.sneak += sneakBonus;
+						player.speech += speechBonus;
 						state = "game";
 					}
 				}

@@ -2,7 +2,7 @@ package com.game;
 
 public class Player {
 	public int hp,maxHP,str,luck,Int,sneak,xp,maxXP,level,gold,speech;
-	public String race,Class;
+	public String race,Class,helmet;
 	
 	public Player() {
 		hp = 50;
@@ -18,6 +18,7 @@ public class Player {
 		speech = 10;
 		race = "orc";
 		Class = "warrior";
+		helmet = "";	//this will decide which kind of helmet you have, so you can wear any kind
 	}
 	
 	public void levelUp() {
