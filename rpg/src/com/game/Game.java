@@ -364,6 +364,25 @@ public class Game implements ActionListener {
 					g.drawString("click to enter", mousemanager.mousex - 200, mousemanager.mousey + 130);
 				}
 			}
+			else {
+				if(location == "armorer") {
+					if(mousemanager.mousex > 32*16 && mousemanager.mousex < 32*17 && mousemanager.mousey > HEIGHT-181 && mousemanager.mousey < HEIGHT-149) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex + 20, mousemanager.mousey - 120, 300, 100);
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex + 21, mousemanager.mousey - 121, 299, 99);
+						
+						g.setColor(Color.black);
+						g.drawString("Town", mousemanager.mousex + 130, mousemanager.mousey - 65);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to enter", mousemanager.mousex + 125, mousemanager.mousey - 45);
+					}
+				}
+			}
 			
 			if(mousemanager.mousex > 32*16 && mousemanager.mousex < 32*17 && mousemanager.mousey > 32*10 && mousemanager.mousey < 32*12) {
 				if(mousemanager.isRightPressed()) {
@@ -772,6 +791,14 @@ public class Game implements ActionListener {
 				//sets caught to a random number between 0 and the player's sneak stat
 				caught = random.nextInt(player.sneak);
 				caughtChecker = 25;	//25 is about 1 second
+			}
+		}
+		
+		if(location == "armorer") {
+			if(mousemanager.mousex > 32*16 && mousemanager.mousex < 32*17 && mousemanager.mousey > HEIGHT-181 && mousemanager.mousey < HEIGHT-149) {
+				if(mousemanager.isLeftPressed()) {
+					location = "town";
+				}
 			}
 		}
 		
