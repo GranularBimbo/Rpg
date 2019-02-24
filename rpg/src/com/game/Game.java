@@ -263,20 +263,37 @@ public class Game implements ActionListener {
 			g.drawImage(legs.guy,32*16,32*10,null);
 			
 			//draws equipment
-			if(player.Class == "thief") {
-				g.drawImage(thiefHelm.guy, 32*16, 32*10, null);
-				g.drawImage(thiefChest.guy, 32*16, 32*10, null);
+			//helmets
+			if(player.helmet == "leather helmet") {
+				g.drawImage(leatherHelm.guy, 32*16, 32*10, null);
 			}
 			else {
-				if(player.Class == "mage") {
+				if(player.helmet == "mage hood") {
 					g.drawImage(hoodHelm.guy, 32*16, 32*10, null);
+				}
+				else {
+					if(player.helmet == "thief hood") {
+						g.drawImage(thiefHelm.guy, 32*16, 32*10, null);
+					}
+				}
+			}
+			
+			//chest
+			if(player.chest == "leather chest") {
+				g.drawImage(leatherChest.guy, 32*16, 32*10, null);
+			}
+			else {
+				if(player.chest == "mage robe") {
 					g.drawImage(robeChest.guy, 32*16, 32*10, null);
 				}
 				else {
-					g.drawImage(leatherHelm.guy, 32*16, 32*10, null);
-					g.drawImage(leatherChest.guy, 32*16, 32*10, null);
+					if(player.chest == "thief robe") {
+						g.drawImage(thiefChest.guy, 32*16, 32*10, null);
+					}
 				}
 			}
+			
+			//legs
 			
 			//draws the in-game UI
 			g.setColor(Color.gray.darker());
@@ -287,11 +304,11 @@ public class Game implements ActionListener {
 			g.drawRect(2, HEIGHT - 149, 32*5 - 10, 32*4);
 			
 			if(wanted) {
-				console.showText(">> Theft Failed", g);
+				console.showText(">> Theft Failed: you've been caught", g);
 			}
 			else {
 				if(caughtChecker >= 0 && caught > 9) {
-					console.showText(">> Theft Succeeded", g);
+					console.showText(">> Theft Successful", g);
 				}
 			}
 			
@@ -422,15 +439,17 @@ public class Game implements ActionListener {
 				}
 				
 				//shows your helmet
-				if(player.Class == "thief") {	//this system will eventually be modified when more armor is added
-					g.drawImage(mediumThief.guy, 32*18, 32*6 + 15, null);
+				if(player.helmet == "leather helmet") {
+					g.drawImage(mediumLeather.guy, 32*18, 32*6 + 15, null);
 				}
 				else {
-					if(player.Class == "mage") {
+					if(player.helmet == "mage hood") {
 						g.drawImage(mediumHood.guy, 32*18, 32*6 + 15, null);
 					}
 					else {
-						g.drawImage(mediumLeather.guy, 32*18, 32*6 + 15, null);
+						if(player.helmet == "thief hood") {
+							g.drawImage(mediumThief.guy, 32*18, 32*6 + 15, null);
+						}
 					}
 				}
 			}
@@ -785,8 +804,9 @@ public class Game implements ActionListener {
 		
 		//makes the armor dissapear after it's clicked
 		if(mousemanager.mousex > armorx && mousemanager.mousex < armorx + armorw && mousemanager.mousey > armory && mousemanager.mousey < armory + armorh) {
-			if(mousemanager.isLeftPressed()) {
+			if(mousemanager.isLeftPressed() && armorVisible == true) {
 				armorVisible = false;
+				player.addToInv("leather helmet");	//see Player.java for inventory code
 				armorRestock = 125;
 				//sets caught to a random number between 0 and the player's sneak stat
 				caught = random.nextInt(player.sneak);
@@ -803,7 +823,7 @@ public class Game implements ActionListener {
 		}
 		
 		if(state == "main menu") {	//main menu logic
-			//adds class bonuses to stats
+			//adds class bonuses to stats and sets starter gear
 			if(player.Class == "thief") {
 				sneakBonus = 5;
 				speechBonus = 5;
@@ -811,6 +831,10 @@ public class Game implements ActionListener {
 				hpBonus = 0;
 				luckBonus = 0;
 				strBonus = 0;
+				
+				player.helmet = "thief hood";
+				player.chest = "thief robe";
+				player.legs = "thief pants";
 			}
 			else {
 				if(player.Class == "mage") {
@@ -820,6 +844,10 @@ public class Game implements ActionListener {
 					speechBonus = 0;
 					hpBonus = 0;
 					strBonus = 0;
+					
+					player.helmet = "mage hood";
+					player.chest = "mage robe";
+					player.legs = "thief pants";
 				}
 				else {
 					strBonus = 5;
@@ -828,6 +856,10 @@ public class Game implements ActionListener {
 					luckBonus = 0;
 					sneakBonus = 0;
 					speechBonus = 0;
+					
+					player.helmet = "leather helmet";
+					player.chest = "leather chest";
+					player.legs = "leather pants";
 				}
 			}
 		}
