@@ -26,8 +26,13 @@ public class Game implements ActionListener {
 	public KeyManager keymanager = new KeyManager();
 	public MouseManager mousemanager = new MouseManager();
 	public Graphics g;
+	public String playerMenuState;
 	
 	Random random;	//creates the random game object
+	
+	//inventory slot position
+	public int slot1x, slot1y, slot2x, slot2y, slot3x, slot3y, slot4x, slot4y, slot5x, slot5y, slot6x, slot6y;
+	public int slot7x, slot7y, slot8x, slot8y, slot9x, slot9y, slot10x, slot10y;
 	
 	//locations
 	public ImageManager town;
@@ -98,6 +103,8 @@ public class Game implements ActionListener {
 	public Button classLeft;
 	public Button classRight;
 	public Button doneButton;
+	public Button playerMenuLeft;
+	public Button playerMenuRight;
 	
 	//player, window, and game state
 	Player player;
@@ -179,8 +186,45 @@ public class Game implements ActionListener {
 		classLeft = new Button(false,420,470,50,50);
 		classRight = new Button(false,480,470,50,50);
 		doneButton = new Button(false,780,620,300,100);
+		playerMenuLeft = new Button(false,32*20 + 10,32*6 + 10,50,50);
+		playerMenuRight = new Button(false,32*20 + 70,32*6 + 10,50,50);
 		creatingCharacter = false;
 		wanted = false;
+		
+		//inventory slot positions
+		slot1x = 32*18 + 10;
+		slot1y = 32*6 + 74;
+		
+		slot2x = slot1x + 42;	//42 is the image's width + 10 so there is some space between them
+		slot2y = slot1y;
+		
+		slot3x = slot2x + 42;
+		slot3y = slot2y;
+		
+		slot4x = slot3x + 42;
+		slot4y = slot3y;
+		
+		slot5x = slot1x;
+		slot5y = slot1y + 74;
+		
+		slot6x = slot2x;
+		slot6y = slot5y;
+		
+		slot7x = slot3x;
+		slot7y = slot6y;
+		
+		slot8x = slot4x;
+		slot8y = slot7y;
+		
+		slot9x = slot5x;
+		slot9y = slot5y + 74;
+		
+		slot10x = slot6x;
+		slot10y = slot9y;
+		
+		
+		//player menu state and armor position
+		playerMenuState = "stats";
 		
 		armorx = 32*10;
 		armory = 32*4;
@@ -408,9 +452,52 @@ public class Game implements ActionListener {
 			}
 			else {
 				if(mousemanager.isLeftPressed()) {
-					playerMenuVisible = false;
+					if(mousemanager.mousex > 32*18 && mousemanager.mousex < 32*18 + 200 && mousemanager.mousey > 32*6 && mousemanager.mousey < 32*6 + 300) {
+						
+					}
+					else {
+						playerMenuVisible = false;
+					}
 				}
 			}
+			
+			//player menu state arrow buttons
+			if(mousemanager.mousex >= playerMenuLeft.x && mousemanager.mousex <= playerMenuLeft.x + playerMenuLeft.w && mousemanager.mousey >= playerMenuLeft.y && mousemanager.mousey <= playerMenuLeft.y + playerMenuLeft.h) {
+				playerMenuLeft.active = true;
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					if(playerMenuState == "stats") {
+						playerMenuState = "inventory";
+						pressDelay = 15;
+					}
+					else {
+						playerMenuState = "stats";
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				playerMenuLeft.active = false;
+			}
+			
+			if(mousemanager.mousex >= playerMenuRight.x && mousemanager.mousex <= playerMenuRight.x + playerMenuRight.w && mousemanager.mousey >= playerMenuRight.y && mousemanager.mousey <= playerMenuRight.y + playerMenuRight.h) {
+				playerMenuRight.active = true;
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					if(playerMenuState == "inventory") {
+						playerMenuState = "stats";
+						pressDelay = 15;
+					}
+					else {
+						playerMenuState = "inventory";
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				playerMenuRight.active = false;
+			}
+			
 			
 			//shows the player stat menu
 			if(playerMenuVisible) {
@@ -422,13 +509,184 @@ public class Game implements ActionListener {
 				g.drawRect(32*18, 32*6, 200, 300);
 				g.drawRect(32*18, 32*6, 64, 64);
 				
-				g.setFont(new Font("Times New Roman",Font.BOLD,18));
-				g.drawString("Hp: " + player.maxHP, 32*18 + 3, 32*6 + 80);
-				g.drawString("Str: " + player.str, 32*18 + 3, 32*6 + 110);
-				g.drawString("Luck: " + player.luck, 32*18 + 3, 32*6 + 140);
-				g.drawString("Int: " + player.Int, 32*18 + 3, 32*6 + 170);
-				g.drawString("Sneak: " + player.sneak, 32*18 + 3, 32*6 + 200);
-				g.drawString("Speech: " + player.speech, 32*18 + 3, 32*6 + 230);
+				
+				//displays the player menu state arrow buttons
+				if(playerMenuLeft.active == false) {
+					g.drawImage(left.guy, playerMenuLeft.x, playerMenuLeft.y, null);
+				}
+				else {
+					g.drawImage(leftActive.guy, playerMenuLeft.x, playerMenuLeft.y, null);
+				}
+				
+				if(playerMenuRight.active == false) {
+					g.drawImage(right.guy, playerMenuRight.x, playerMenuRight.y, null);
+				}
+				else {
+					g.drawImage(rightActive.guy, playerMenuRight.x, playerMenuRight.y, null);
+				}
+				
+				
+				//shows the stats if game state is stats and inventory if it = inventory
+				if(playerMenuState == "stats") {
+					g.setFont(new Font("Times New Roman",Font.BOLD,18));
+					g.drawString("Hp: " + player.maxHP, 32*18 + 3, 32*6 + 80);
+					g.drawString("Str: " + player.str, 32*18 + 3, 32*6 + 110);
+					g.drawString("Luck: " + player.luck, 32*18 + 3, 32*6 + 140);
+					g.drawString("Int: " + player.Int, 32*18 + 3, 32*6 + 170);
+					g.drawString("Sneak: " + player.sneak, 32*18 + 3, 32*6 + 200);
+					g.drawString("Speech: " + player.speech, 32*18 + 3, 32*6 + 230);
+				}
+				else {	//shows items in the inventory
+					//inventory slot 1
+					if(player.inventory[0] == "leather helmet") {
+						g.drawImage(leatherHelm.guy, slot1x, slot1y, null);
+					}
+					else {
+						if(player.inventory[0] == "mage hood") {
+							g.drawImage(hoodHelm.guy, slot1x, slot1y, null);
+						}
+						else {
+							if(player.inventory[0] == "thief hood") {
+								g.drawImage(thiefHelm.guy, slot1x, slot1y, null);
+							}
+						}
+					}
+					
+					//inventory slot 2
+					if(player.inventory[1] == "leather helmet") {
+						g.drawImage(leatherHelm.guy, slot2x, slot2y, null);
+					}
+					else {
+						if(player.inventory[1] == "mage hood") {
+							g.drawImage(hoodHelm.guy, slot2x, slot2y, null);
+						}
+						else {
+							if(player.inventory[1] == "thief hood") {
+								g.drawImage(thiefHelm.guy, slot2x, slot2y, null);
+							}
+						}
+					}
+					
+					//inventory slot 3
+					if(player.inventory[2] == "leather helmet") {
+						g.drawImage(leatherHelm.guy, slot3x, slot3y, null);
+					}
+					else {
+						if(player.inventory[2] == "mage hood") {
+							g.drawImage(hoodHelm.guy, slot3x, slot3y, null);
+						}
+						else {
+							if(player.inventory[2] == "thief hood") {
+								g.drawImage(thiefHelm.guy, slot3x, slot3y, null);
+							}
+						}
+					}
+					
+					//inventory slot 4
+					if(player.inventory[3] == "leather helmet") {
+						g.drawImage(leatherHelm.guy, slot4x, slot4y, null);
+					}
+					else {
+						if(player.inventory[3] == "mage hood") {
+							g.drawImage(hoodHelm.guy, slot4x, slot4y, null);
+						}
+						else {
+							if(player.inventory[3] == "thief hood") {
+								g.drawImage(thiefHelm.guy, slot4x, slot4y, null);
+							}
+						}
+					}
+					
+					//inventory slot 5
+					if(player.inventory[4] == "leather helmet") {
+						g.drawImage(leatherHelm.guy, slot5x, slot5y, null);
+					}
+					else {
+						if(player.inventory[4] == "mage hood") {
+							g.drawImage(hoodHelm.guy, slot5x, slot5y, null);
+						}
+						else {
+							if(player.inventory[4] == "thief hood") {
+								g.drawImage(thiefHelm.guy, slot5x, slot5y, null);
+							}
+						}
+					}
+					
+					//inventory slot 6
+					if(player.inventory[5] == "leather helmet") {
+						g.drawImage(leatherHelm.guy, slot6x, slot6y, null);
+					}
+					else {
+						if(player.inventory[5] == "mage hood") {
+							g.drawImage(hoodHelm.guy, slot6x, slot6y, null);
+						}
+						else {
+							if(player.inventory[5] == "thief hood") {
+								g.drawImage(thiefHelm.guy, slot6x, slot6y, null);
+							}
+						}
+					}
+					
+					//inventory slot 7
+					if(player.inventory[6] == "leather helmet") {
+						g.drawImage(leatherHelm.guy, slot7x, slot7y, null);
+					}
+					else {
+						if(player.inventory[6] == "mage hood") {
+							g.drawImage(hoodHelm.guy, slot7x, slot7y, null);
+						}
+						else {
+							if(player.inventory[6] == "thief hood") {
+								g.drawImage(thiefHelm.guy, slot7x, slot7y, null);
+							}
+						}
+					}
+					
+					//inventory slot 8
+					if(player.inventory[7] == "leather helmet") {
+						g.drawImage(leatherHelm.guy, slot8x, slot8y, null);
+					}
+					else {
+						if(player.inventory[7] == "mage hood") {
+							g.drawImage(hoodHelm.guy, slot8x, slot8y, null);
+						}
+						else {
+							if(player.inventory[7] == "thief hood") {
+								g.drawImage(thiefHelm.guy, slot8x, slot8y, null);
+							}
+						}
+					}
+					
+					//inventory slot 9
+					if(player.inventory[8] == "leather helmet") {
+						g.drawImage(leatherHelm.guy, slot9x, slot9y, null);
+					}
+					else {
+						if(player.inventory[8] == "mage hood") {
+							g.drawImage(hoodHelm.guy, slot9x, slot9y, null);
+						}
+						else {
+							if(player.inventory[8] == "thief hood") {
+								g.drawImage(thiefHelm.guy, slot9x, slot9y, null);
+							}
+						}
+					}
+					
+					//inventory slot 10
+					if(player.inventory[9] == "leather helmet") {
+						g.drawImage(leatherHelm.guy, slot10x, slot10y, null);
+					}
+					else {
+						if(player.inventory[9] == "mage hood") {
+							g.drawImage(hoodHelm.guy, slot10x, slot10y, null);
+						}
+						else {
+							if(player.inventory[9] == "thief hood") {
+								g.drawImage(thiefHelm.guy, slot10x, slot10y, null);
+							}
+						}
+					}
+				}
 				
 				//shows the face
 				if(player.race == "orc") {

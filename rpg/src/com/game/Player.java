@@ -29,9 +29,6 @@ public class Player {
 		for(int i = 0; i < inventory.length; i++) {	//increases i by 1 while i isn't the length of the inventory
 			if(inventory[i] == null) {	//adds item to that slot if the slot is empty
 				inventory[i] = item;
-			}
-			
-			if(inventory[i] == item) {	//breaks the loop so the item is only added to 1 slot
 				break;
 			}
 		}
