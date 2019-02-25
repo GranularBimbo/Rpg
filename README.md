@@ -2,4 +2,4 @@
 an rpg
 
 
-These changes arent noticable right now, i changed the system where it displays armor based on class, so you can have any kind of armor. I also added a working inventory but you cant see it in game yet.
+The inventory works and is in game but isn't perfect. It will be changed later
