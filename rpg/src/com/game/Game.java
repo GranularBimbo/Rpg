@@ -374,6 +374,9 @@ public class Game implements ActionListener {
 	
 	public void update(Graphics graphics) {
 		if(state == "game") {	//graphics that show while you are in the game
+			//constantly checks if the player should level up
+			player.levelUp();
+			
 			//draws the location
 			if(location == "town") {
 				g.drawImage(town.guy,0,0,null);
