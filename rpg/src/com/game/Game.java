@@ -32,6 +32,26 @@ public class Game implements ActionListener {
 	public int dialogueSlide, weaponDamage, damage, woodsMonsterChance;
 	public String swapHelm;
 	public String turn;	//who's turn it is to attack
+	public boolean buyMenuVisible, launchingFireball;
+	public boolean talkingToClerk, talkingToGuard, talkingToCitizen, selectingTarget;
+	public int guardRespawn, fireballX, fireballY;
+	public Guard target;
+	public Enemy enemyTarget;
+	
+	
+	public int clerkx, clerky, clerkw, clerkh;
+	
+	public int menuBox_x, menuBox_y, menuBox_w, menuBox_h;
+	
+	//enemies
+	public Enemy chicken;
+	
+	//shop items
+	public ShopItem leather_chest;
+	
+	//people
+	public Person armorerClerk;
+	public Person jim;
 	
 	Random random;	//creates the random game object
 	
@@ -39,6 +59,8 @@ public class Game implements ActionListener {
 	
 	//dialogues
 	Dialogue caughtDialogue;
+	Dialogue armorerDialogue;
+	Dialogue citizenDialogue;
 	
 	//Guards
 	//Town1 guards
@@ -47,6 +69,13 @@ public class Game implements ActionListener {
 	//weapons
 	public ImageManager woodenSword;
 	public ImageManager steelSword;
+	public ImageManager wand;
+	public ImageManager staff;
+	public ImageManager shank;
+	public ImageManager dagger;
+	
+	//enemy images
+	public ImageManager chicken_i;
 	
 	//inventory slot position
 	public int slot1x, slot1y, slot2x, slot2y, slot3x, slot3y, slot4x, slot4y, slot5x, slot5y, slot6x, slot6y;
@@ -54,10 +83,14 @@ public class Game implements ActionListener {
 	
 	//locations
 	public ImageManager town;
+	public ImageManager town2;
 	public ImageManager armorer;
 	public ImageManager blacksmith;
 	public ImageManager castle;
 	public ImageManager woods;
+	
+	//spells
+	public ImageManager fire_ball;
 	
 	//people images
 	public ImageManager armorClerk;
@@ -161,12 +194,25 @@ public class Game implements ActionListener {
 		cursor = new ImageManager("assets/img/cursor.png");
 		dialogueSlide = 0;
 		
+		fireballX = 32*16;
+		fireballY = 32*10;
+		
+		//spells
+		fire_ball = new ImageManager("assets/img/spells/fireball.png");
+		
+		//enemies
+		chicken_i = new ImageManager("assets/img/enemies/chicken.png");
+		
 		//people
 		armorClerk = new ImageManager("assets/img/people/armorClerk.png");
 		
 		//weapons
 		woodenSword = new ImageManager("assets/img/weapons/woodenSword.png");
 		steelSword = new ImageManager("assets/img/weapons/steelSword.png");
+		wand = new ImageManager("assets/img/weapons/wand.png");
+		staff = new ImageManager("assets/img/weapons/staff.png");
+		shank = new ImageManager("assets/img/weapons/shank.png");
+		dagger = new ImageManager("assets/img/weapons/dagger.png");
 		
 		//big things
 		bigOrcHead = new ImageManager("assets/img/heads/BigOrcHead.png");
@@ -187,6 +233,7 @@ public class Game implements ActionListener {
 		
 		//locations
 		town = new ImageManager("assets/img/locations/town.jpg");
+		town2 = new ImageManager("assets/img/locations/town2.png");
 		armorer = new ImageManager("assets/img/locations/armorer.jpg");
 		woods = new ImageManager("assets/img/locations/woods.jpg");
 		blacksmith = new ImageManager("assets/img/locations/weapons.jpg");
@@ -226,6 +273,54 @@ public class Game implements ActionListener {
 		run();
 	}
 	
+	public void castSpell_Guards(Guard target) {
+		selectingTarget = true;
+		this.target = target;
+	}
+	
+	public void castSpell_Enemies(Enemy target) {
+		selectingTarget = true;
+		enemyTarget = target;
+	}
+	
+	public Guard targetSelectionGuard() {
+		if(location == "town") {
+			if(mouseCollided(guard.x,guard.y,guard.w,guard.h)) {
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					return guard;
+				}
+				else {
+					return null;
+				}
+			}
+			else {
+				return null;
+			}
+		}
+		else {
+			return null;
+		}
+	}
+	
+	public Enemy targetSelectionEnemy() {
+		if(location == "woods") {
+			if(mouseCollided(chicken.x,chicken.y,chicken.w,chicken.h)) {
+				if(mousemanager.isLeftPressed() && pressDelay  == 0) {
+					return chicken;
+				}
+				else {
+					return null;
+				}
+			}
+			else {
+				return null;
+			}
+		}
+		else {
+			return null;
+		}
+	}
+	
 	//a function so i dont have to rewrite the collision code for each button
 	public boolean mouseCollided(int obj_x,int obj_y,int obj_width,int obj_height) {
 		if(mousemanager.mousex > obj_x && mousemanager.mousex < obj_x + obj_width && mousemanager.mousey > obj_y && mousemanager.mousey < obj_y + obj_height) {
@@ -234,6 +329,13 @@ public class Game implements ActionListener {
 		else {
 			return false;
 		}
+	}
+	
+	public void steal(String item) {
+		player.addToInv(item);
+		caughtCalculator();
+		caughtChecker = 25;
+		pressDelay = 25;
 	}
 	
 	public void init() {
@@ -270,9 +372,25 @@ public class Game implements ActionListener {
 		turn = "you";
 		location = "town";
 		
+		clerkx = 32*16;
+		clerky = 32*2;
+		clerkw = 32;
+		clerkh = 64;
+		
+		//shop items
+		leather_chest = new ShopItem(32*12,32*4,32,32);
+		
+		//enemies
+		chicken = new Enemy(32*16,32*15,32,32,1,10);
+		
+		//people
+		armorerClerk = new Person(clerkx,clerky,clerkw,clerkh,null);
+		jim = new Person(32*6,32*10,32,64,"town");
+		
 		//dialogues
 		caughtDialogue = new Dialogue(4);	//4 is how many "slides" are in the dialogue, or how many times
-											//you would have to click to see it all
+		armorerDialogue = new Dialogue(2);	//you would have to click to see it all
+		citizenDialogue = new Dialogue(1);
 		
 		//might change where and how dialogue slides are added for more variety in the future
 		//for instance i could use arrays of possible sentances and have a random one chosen
@@ -280,6 +398,11 @@ public class Game implements ActionListener {
 		caughtDialogue.addSlide(">> Guard: Pay your fine or serve your sentance.");
 		caughtDialogue.addSlide(">> Guard: THEN DIE!");
 		caughtDialogue.addSlide(">> Guard: I hope you learn from your mistakes.");
+		
+		armorerDialogue.addSlide(">> Merchant: Hey there!");
+		armorerDialogue.addSlide(">> Merchant: Why not take a look at my wares?");
+		
+		citizenDialogue.addSlide(">> Citizen: Hey.");
 		
 		guard = new Guard(32*4,32*10,20);
 		
@@ -357,6 +480,10 @@ public class Game implements ActionListener {
 		display.getCanvas().addMouseMotionListener(mousemanager);
 	}
 	
+	public void caughtCalculator() {
+		caught = (((random.nextInt(player.sneak) - (player.sneak / ((random.nextInt(player.luck) + random.nextInt(3)) + 1))) + Math.abs(player.sneak - player.luck)) + 1);
+	}
+	
 	public void render() {
 		BufferStrategy bs = display.getCanvas().getBufferStrategy();
 		//checks if there is a buffer strategy
@@ -377,6 +504,45 @@ public class Game implements ActionListener {
 			//constantly checks if the player should level up
 			player.levelUp();
 			
+			if(player.hp < 0) {
+				player.hp = 0;
+			}
+			
+			if(guardRespawn > 0) {
+				guardRespawn--;
+				System.out.println("" + guardRespawn);
+			}
+			
+			if(guard.hp < -1) {
+				guard.hp = 0;
+			}
+			
+			if(guard.hp == 0) {
+				guardRespawn = 12000;
+				guard.hp = -1;
+			}
+			
+			if(guardRespawn == 0) {
+				guard.hp = guard.maxHP;
+				guardRespawn = -1;
+			}
+			
+			if(location == "armorer") {
+				if(mouseCollided(armorerClerk.x,armorerClerk.y,armorerClerk.w,armorerClerk.h)) {
+					if(mousemanager.isLeftPressed() && pressDelay == 0) {
+						talkingToClerk = true;
+						talkingToCitizen = false;
+					}
+				}
+			}
+			
+			if(mouseCollided(jim.x,jim.y,jim.w,jim.h)) {
+				if(mousemanager.isLeftPressed() && pressDelay == 0 && location == jim.location) {
+					talkingToCitizen = true;
+					dialogueSlide = 0;
+				}
+			}
+			
 			//draws the location
 			if(location == "town") {
 				g.drawImage(town.guy,0,0,null);
@@ -388,7 +554,7 @@ public class Game implements ActionListener {
 						armorVisible = true;	//while this is true it shows the armor
 					}
 					
-					g.drawImage(armorClerk.guy, 32*16, 32*2, null);
+					g.drawImage(armorClerk.guy, armorerClerk.x, armorerClerk.y, null);
 				}
 				else {
 					if(location == "woods") {
@@ -402,6 +568,11 @@ public class Game implements ActionListener {
 							if(location == "blacksmith") {
 								g.drawImage(blacksmith.guy, 0, 0, null);
 							}
+							else {
+								if(location == "town2") {
+									g.drawImage(town2.guy, 0, 0, null);
+								}
+							}
 						}
 					}
 				}
@@ -412,11 +583,95 @@ public class Game implements ActionListener {
 				g.drawImage(leatherHelm.guy, armorx, armory, null);
 			}
 			
+			if(location == "armorer" && leather_chest.restockTimer == 0) {
+				g.drawImage(leatherChest_I.guy, leather_chest.x, leather_chest.y, null);
+			}
+			
 			
 			//draws the character
 			g.drawImage(head.guy,32*16,32*10,null);	//32 is the tile size, so this chooses how many tiles over it is
 			g.drawImage(torso.guy,32*16,32*10, null);
 			g.drawImage(legs.guy,32*16,32*10,null);
+			
+			if(launchingFireball) {
+				g.drawImage(fire_ball.guy, fireballX, fireballY, null);
+				
+				if(target != null) {
+					if(fireballX + 32 > target.x && fireballX < target.x + target.w && fireballY + 32 > target.y && fireballY < target.y + target.h) {
+						launchingFireball = false;
+					}
+					else {
+						if(fireballX > target.x + target.w) {
+							fireballX--;
+						}
+						else {
+							if(fireballX + 32 < target.x) {
+								fireballX++;
+							}
+							else {
+								target.hp -= 20;
+								dialogueSlide = -4;	//odio
+								pressDelay = 40;
+								hostile = true;
+								turn = "guard";
+								launchingFireball = false;
+							}
+						}
+						
+						if(fireballY > target.y + target.h) {
+							fireballY--;
+						}
+						else {
+							if(fireballY + 32 < target.y) {
+								fireballY++;
+							}
+						}
+					}
+				}
+				
+				if(enemyTarget != null) {
+					g.drawImage(fire_ball.guy, fireballX, fireballY, null);
+						
+					if(fireballX + 32 > enemyTarget.x && fireballX < enemyTarget.x + enemyTarget.w && fireballY + 32 > enemyTarget.y && fireballY < enemyTarget.y + enemyTarget.h) {
+						launchingFireball = false;
+					}
+					else {
+						if(fireballX > enemyTarget.x + enemyTarget.w) {
+							fireballX--;
+						}
+						else {
+							if(fireballX + 32 < enemyTarget.x) {
+								fireballX++;
+							}
+						}
+							
+						if(fireballY > enemyTarget.y + enemyTarget.h) {
+							fireballY--;
+						}
+						else {
+							if(fireballY + 32 < enemyTarget.y) {
+								fireballY++;
+							}
+							else {
+								enemyTarget.hp -= 20;
+								dialogueSlide = -4;	//odio
+								pressDelay = 40;
+								enemyTarget.hostile = true;
+								turn = "chicken";	//use toString() so the turn isnt just chicken
+								System.out.println(turn);
+								launchingFireball = false;
+							}
+						}
+					}
+				}
+				
+			}
+			
+			
+			if(launchingFireball == false) {
+				fireballX = 32*16;
+				fireballY = 32*10;
+			}
 			
 			//draws equipment
 			//helmets
@@ -459,6 +714,26 @@ public class Game implements ActionListener {
 				if(playerWeapon == Weapon.steelSword) {
 					g.drawImage(steelSword.guy, 32*16, 32*10, null);
 				}
+				else {
+					if(playerWeapon == Weapon.wand) {
+						g.drawImage(wand.guy, 32*16, 32*10, null);
+					}
+					else {
+						if(playerWeapon == Weapon.staff) {
+							g.drawImage(staff.guy, 32*16, 32*10, null);
+						}
+						else {
+							if(playerWeapon == Weapon.shank) {
+								g.drawImage(shank.guy, 32*16, 32*10, null);
+							}
+							else {
+								if(playerWeapon == Weapon.dagger) {
+									g.drawImage(dagger.guy, 32*16, 32*10, null);
+								}
+							}
+						}
+					}
+				}
 			}
 			
 			//draws the in-game UI
@@ -467,23 +742,26 @@ public class Game implements ActionListener {
 			
 			g.setColor(Color.black);
 			
-			if(player.race == "orc") {
-				g.drawImage(toolbar_orc.guy, 2, HEIGHT - 149, null);
-			}
-			else {
-				g.drawImage(toolbar_human.guy, 2, HEIGHT - 149, null);
-			}
-			
-			if(player.helmet == "leather helmet") {
-				g.drawImage(toolbar_leather.guy, 2, HEIGHT - 149, null);
-			}
-			else {
-				if(player.helmet == "thief hood") {
-					g.drawImage(toolbar_thief.guy, 2, HEIGHT - 149, null);
+			//shows the head in the corner (in game) while dialogue is closed
+			if(talkingToClerk == false && talkingToGuard == false && talkingToCitizen == false) {
+				if(player.race == "orc") {
+					g.drawImage(toolbar_orc.guy, 2, HEIGHT - 149, null);
 				}
 				else {
-					if(player.helmet == "mage hood") {
-						g.drawImage(toolbar_hood.guy, 2, HEIGHT - 149, null);
+					g.drawImage(toolbar_human.guy, 2, HEIGHT - 149, null);
+				}
+				
+				if(player.helmet == "leather helmet") {
+					g.drawImage(toolbar_leather.guy, 2, HEIGHT - 149, null);
+				}
+				else {
+					if(player.helmet == "thief hood") {
+						g.drawImage(toolbar_thief.guy, 2, HEIGHT - 149, null);
+					}
+					else {
+						if(player.helmet == "mage hood") {
+							g.drawImage(toolbar_hood.guy, 2, HEIGHT - 149, null);
+						}
 					}
 				}
 			}
@@ -494,39 +772,96 @@ public class Game implements ActionListener {
 					g.drawImage(toolbar_leather.guy, 2, HEIGHT - 149, null);
 				}
 			}
+			
+			if(dialogueSlide == 0) {
+				if(location == "armorer" || location == "town" || location == "blacksmith") {
+					if(talkingToCitizen) {
+						g.drawImage(toolbar_human.guy, 2, HEIGHT - 149, null);
+						g.drawImage(toolbar_leather.guy, 2, HEIGHT - 149, null);
+					}
+				}
+			}
+			
+			if(dialogueSlide == 0 || dialogueSlide == 1) {
+				if(talkingToClerk && location == "armorer") {
+					g.drawImage(toolbar_human.guy, 2, HEIGHT - 149, null);
+					g.drawImage(toolbar_leather.guy, 2, HEIGHT - 149, null);
+				}
+			}
+			else {
+				if(location == "armorer" && pressDelay == 0) {
+					dialogueSlide = 0;
+					talkingToClerk = false;
+				}
+			}
 		
 			g.drawRect(2, HEIGHT - 149, WIDTH - 4, 148);
 			g.drawRect(2, HEIGHT - 149, 32*5 - 10, 32*4);
 			
-			if(wanted && location != "town") {
-				console.showText(">> Theft Failed: you've been caught", g);
-			}
-			else {
-				if(caughtChecker >= 0 && caught > 9) {
-					console.showText(">> Theft Successful", g);
+			if(talkingToClerk == false && talkingToCitizen == false) {
+				if(wanted && location != "town") {
+					console.showText(">> Theft Failed: you've been caught", g);
+				}
+				else {
+					if(caughtChecker >= 0 && caught > 9) {
+						if(hostile == false) {
+							console.showText(">> Theft Successful", g);
+						}
+					}
 				}
 			}
-			
+
 			if(wanted && location == "town" && guard.hp > 0) {
-				if(dialogueSlide == 0) {
+				talkingToGuard = true;
+				
+				if(dialogueSlide == 0 && talkingToGuard) {
 					console.showText(caughtDialogue.slides[0], g);
 				}
 				else {
-					if(dialogueSlide == 1) {
+					if(dialogueSlide == 1 && talkingToGuard) {
 						console.showText(caughtDialogue.slides[1], g);
 					}
 				}
 			}
 			
+			if(hostile) {
+				talkingToGuard = false;
+			}
+			
+			if(location == "armorer" && talkingToClerk) {
+				if(dialogueSlide == 0) {
+					console.showText(armorerDialogue.slides[0], g);
+				}
+				else {
+					if(dialogueSlide == 1) {
+						console.showText(armorerDialogue.slides[1], g);
+					}
+				}
+			}
+			
+			if(talkingToCitizen) {
+				if(dialogueSlide == 0) {
+					console.showText(citizenDialogue.slides[0], g);
+				}
+			}
+			
 			if(dialogueSlide == -1) {
-				console.showText(">> Health lost: " + guard.damage, g);;
+				console.showText(">> Health lost: " + guard.damage, g);
+			}
+			
+			if(dialogueSlide == -3) {
+				console.showText(">> Health lost: " + chicken.damage, g);
 			}
 			
 			if(dialogueSlide == -2) {
 				console.showText(">> Damage delt: " + damage, g);;
 			}
 			
-			if(dialogueSlide == 2) {
+			if(dialogueSlide == -4) {
+				console.showText(">> Damage delt: 20", g);;
+			}
+			
+			if(dialogueSlide == 2 && location == "town") {
 				turn = "guard";
 				wanted = false;
 				hostile = true;
@@ -536,7 +871,29 @@ public class Game implements ActionListener {
 				g.drawImage(armorClerk.guy, guard.x, guard.y, null);
 			}
 			
+			if(location == jim.location) {
+				g.drawImage(armorClerk.guy, jim.x, jim.y, null);
+			}
+			
 			if(wanted && location == "town" && dialogueSlide > -1 && guard.hp > 0) {	//this if statement will change as more towns are added
+				if(okButton.active) {
+					g.drawImage(okActive.guy, okButton.x, okButton.y, null);
+				}
+				else {
+					g.drawImage(ok.guy, okButton.x, okButton.y, null);
+				}
+			}
+			
+			if(talkingToClerk && location == "armorer" && dialogueSlide > -1 && dialogueSlide < 2) {	//this if statement will change as more towns are added
+				if(okButton.active) {
+					g.drawImage(okActive.guy, okButton.x, okButton.y, null);
+				}
+				else {
+					g.drawImage(ok.guy, okButton.x, okButton.y, null);
+				}
+			}
+			
+			if(talkingToCitizen && dialogueSlide > -1 && dialogueSlide < 1) {	//this if statement will change as more towns are added
 				if(okButton.active) {
 					g.drawImage(okActive.guy, okButton.x, okButton.y, null);
 				}
@@ -566,7 +923,16 @@ public class Game implements ActionListener {
 				if(mousemanager.isLeftPressed() && pressDelay == 0) {
 					if(location == "town") {
 						location = "woods";
+						talkingToCitizen = false;
+						dialogueSlide = 0;
 						woodsMonsterChance = random.nextInt(10);
+						pressDelay = 15;
+					}
+					else {
+						if(location == "woods") {
+							location = "town2";
+							pressDelay = 15;
+						}
 					}
 				}
 			}
@@ -574,19 +940,6 @@ public class Game implements ActionListener {
 				south.active = false;
 			}
 			
-			if(mouseCollided(south.x,south.y,south.w,south.h)) {
-				south.active = true;
-				
-				if(mousemanager.isLeftPressed() && pressDelay == 0) {
-					if(location == "town") {
-						location = "woods";
-						woodsMonsterChance = random.nextInt(10);
-					}
-				}
-			}
-			else {
-				south.active = false;
-			}
 			
 			if(location == "woods" && wanted) {
 				hostile = true;
@@ -599,9 +952,22 @@ public class Game implements ActionListener {
 				if(mousemanager.isLeftPressed() && pressDelay == 0) {
 					if(location == "woods") {
 						location = "town";
+						if(wanted) {
+							hostile = true;;
+							wanted = false;
+						}
 						
 						if(hostile) {
 							turn = "guard";
+						}
+						
+						pressDelay = 15;
+					}
+					else {
+						if(location == "town2") {
+							location = "woods";
+							woodsMonsterChance = random.nextInt(10);
+							pressDelay = 15;
 						}
 					}
 				}
@@ -610,30 +976,84 @@ public class Game implements ActionListener {
 				north.active = false;
 			}
 			
-			if(woodsMonsterChance > 4 && location == "woods") {
-				console.showText(">> Monster has appeared", g);
+			if(woodsMonsterChance > 4 && location == "woods" && dialogueSlide == 0) {
+				console.showText(">> A chicken has appeared", g);
+				caught = -3;
+			}
+			
+			if(woodsMonsterChance > 4 && location == "woods" && chicken.hp > 0) {
+				g.drawImage(chicken_i.guy, chicken.x, chicken.y,null);
+			}
+			
+			if(location != "woods") {
+				chicken.hp = chicken.maxHP;
+			}
+			
+			if(location == "woods") {
+				if(chicken.hp < 1 || woodsMonsterChance < 5) {
+					dialogueSlide = 0;
+					g.setColor(Color.gray.darker());
+					g.fillRect(console.x, console.y - 30, 500, 50);
+					console.showText(">> You see a town to the north and a town to the south", g);
+				}
+			}
+			
+			if(location == "armorer") {
+				if(talkingToClerk == false && talkingToCitizen == false && caught > 9) {
+					console.showText(">> You see a variety of armor for sale on the counter", g);
+				}
+			}
+			
+			if(location == "town") {
+				if(talkingToCitizen == false && wanted == false && hostile == false) {
+					console.showText(">> You are in a town with 2 houses, a castle, armorer, and blacksmith", g);
+				}
+			}
+			
+			if(chicken.hp <= 0 && location == "woods") {
+				if(chicken.hp != -2) {
+					chicken.hp = -1;
+				}
+			}
+			
+			if(chicken.hp == -1) {
+				player.xp += 5;
+				chicken.hp = -2;
 			}
 			
 			//guard attacking
 			if(mouseCollided(guard.x,guard.y,guard.w,guard.h)) {
 				if(mousemanager.isLeftPressed() && pressDelay == 0) {
-					if(playerWeapon == Weapon.woodenSword) {
-						weaponDamage = 5;	//odio
+					if(selectingTarget == true) {
+						target = guard;
+						launchingFireball = true;
 					}
-					//algorythm that decides how much damage you deal
-					damage = ((weaponDamage*player.str - (weaponDamage*player.str / player.luck)) / (random.nextInt(player.luck - random.nextInt(5)) + 1));
-					guard.hp -= damage;
-					dialogueSlide = -2;
-					hostile = true;
-					pressDelay = 40;
+					else {
+						//algorythm that decides how much damage you deal
+						damage = ((weaponDamage*player.str - (weaponDamage*player.str / player.luck)) / (random.nextInt(player.luck - random.nextInt(5)) + 1));
+						guard.hp -= damage;
+						dialogueSlide = -2;
+						hostile = true;
+						turn = "guard";
+						pressDelay = 40;
+					}
 				}
 			}
 			
 			if(hostile && location == "town") {
-				if(turn == "guard" && guard.hp > 0) {
+				if(turn == "guard" && guard.hp > 0 && pressDelay == 0) {
 					guard.calcDamage();
 					player.hp -= guard.damage;
 					dialogueSlide = -1;
+					turn = "you";
+				}
+			}
+			
+			if(location == "woods" && chicken.hostile) {
+				if(turn == "chicken" && chicken.hp > 0 && pressDelay == 0) {
+					chicken.calcDamage();
+					player.hp -= chicken.damage;
+					dialogueSlide = -3;
 					turn = "you";
 				}
 			}
@@ -642,8 +1062,26 @@ public class Game implements ActionListener {
 				turn = "guard";
 			}
 			
-			if(location != "town") {
-				dialogueSlide = 0;
+			if(pressDelay < 1 && chicken.hostile && dialogueSlide == -2) {
+				turn = "chicken";
+			}
+			
+			if(mouseCollided(chicken.x,chicken.y,chicken.w,chicken.h)) {
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					if(selectingTarget == true) {
+						enemyTarget = chicken;
+						launchingFireball = true;
+					}
+					else {
+						if(mousemanager.isLeftPressed() && pressDelay == 0 && location == "woods") {
+							damage = ((weaponDamage*player.str - (weaponDamage*player.str / player.luck)) / (random.nextInt(player.luck - random.nextInt(5)) + 1));
+							chicken.hp -= damage;
+							dialogueSlide = -2;
+							chicken.hostile = true;
+							pressDelay = 40;
+						}
+					}
+				}
 			}
 			
 			
@@ -659,6 +1097,19 @@ public class Game implements ActionListener {
 			g.setFont(new Font("Times New Roman",Font.BOLD,15));
 			//sets text that displays your hp in the middle of the health bar
 			g.drawString("Hp: " + player.hp + "/" + player.maxHP, ((player.maxHP*(player.maxHP/15))/2)-30, HEIGHT-8);
+			
+			if(buyMenuVisible) {
+				g.setColor(Color.gray.darker());
+				menuBox_x = armorx + 20;
+				menuBox_y = armory + 30;
+				menuBox_w = 200;
+				menuBox_h = 100;
+				
+				g.fillRect(menuBox_x, menuBox_y, menuBox_w, menuBox_h);
+				
+				g.setColor(Color.black);
+				g.drawRect(menuBox_x, menuBox_y, menuBox_w, menuBox_h);
+			}
 			
 			
 			//shows the box with the description of each building when the mouse is over it
@@ -685,6 +1136,9 @@ public class Game implements ActionListener {
 						}
 						
 						location = "armorer";
+						caught = 20;
+						talkingToCitizen = false;
+						dialogueSlide = 0;
 						
 						if(hostile) {
 							turn = "guard";
@@ -692,6 +1146,7 @@ public class Game implements ActionListener {
 					}
 					
 				}
+				
 				
 				if(mousemanager.mousex > 32*13 && mousemanager.mousex < 32*20 && mousemanager.mousey > 128 && mousemanager.mousey < 128 + 32*4) {
 					g.setFont(new Font("Times New Roman",Font.BOLD,30));
@@ -715,7 +1170,9 @@ public class Game implements ActionListener {
 						}
 						
 						location = "castle";
+						talkingToCitizen = false;
 						pressDelay = 15;
+						dialogueSlide = 0;
 						
 						if(hostile) {
 							turn = "guard";
@@ -745,7 +1202,9 @@ public class Game implements ActionListener {
 						}
 						
 						location = "blacksmith";
+						talkingToCitizen = false;
 						pressDelay = 15;
+						dialogueSlide = 0;
 						
 						if(hostile) {
 							turn = "guard";
@@ -790,7 +1249,9 @@ public class Game implements ActionListener {
 							
 							if(mousemanager.isLeftPressed()) {
 								location = "town";
+								talkingToCitizen = false;
 								pressDelay = 15;
+								dialogueSlide = 0;
 							}
 						}
 					}
@@ -813,7 +1274,9 @@ public class Game implements ActionListener {
 								
 								if(mousemanager.isLeftPressed()) {
 									location = "town";
+									talkingToCitizen = false;
 									pressDelay = 15;
+									dialogueSlide = 0;
 								}
 							}
 						}
@@ -843,12 +1306,20 @@ public class Game implements ActionListener {
 				
 				if(mousemanager.isLeftPressed() && pressDelay == 0) {
 					if(playerMenuState == "stats") {
-						playerMenuState = "inventory";
+						playerMenuState = "spells";
 						pressDelay = 15;
 					}
 					else {
-						playerMenuState = "stats";
-						pressDelay = 15;
+						if(playerMenuState == "inventory") {
+							playerMenuState = "stats";
+							pressDelay = 15;
+						}
+						else {
+							if(playerMenuState == "spells") {
+								playerMenuState = "inventory";
+								pressDelay = 15;
+							}
+						}
 					}
 				}
 			}
@@ -861,12 +1332,20 @@ public class Game implements ActionListener {
 				
 				if(mousemanager.isLeftPressed() && pressDelay == 0) {
 					if(playerMenuState == "inventory") {
-						playerMenuState = "stats";
+						playerMenuState = "spells";
 						pressDelay = 15;
 					}
 					else {
-						playerMenuState = "inventory";
-						pressDelay = 15;
+						if(playerMenuState == "spells") {
+							playerMenuState = "stats";
+							pressDelay = 15;
+						}
+						else {
+							if(playerMenuState == "stats") {
+								playerMenuState = "inventory";
+								pressDelay = 15;
+							}
+						}
 					}
 				}
 			}
@@ -874,6 +1353,12 @@ public class Game implements ActionListener {
 				playerMenuRight.active = false;
 			}
 			
+			//target selecting
+			if(target == guard && enemyTarget == null && selectingTarget == true) {	//maybe not if it equals null
+				pressDelay = 15;
+				selectingTarget = false;
+				System.out.println("Target: " + target);
+			}
 			
 			//shows the player stat menu
 			if(playerMenuVisible) {
@@ -903,34 +1388,43 @@ public class Game implements ActionListener {
 				
 				
 				//shows the stats if game state is stats and inventory if it = inventory
-				if(playerMenuState == "stats") {
-					g.setFont(new Font("Times New Roman",Font.BOLD,18));
-					g.drawString("Hp: " + player.maxHP, 32*18 + 3, 32*6 + 80);
-					g.drawString("Str: " + player.str, 32*18 + 3, 32*6 + 110);
-					g.drawString("Luck: " + player.luck, 32*18 + 3, 32*6 + 140);
-					g.drawString("Int: " + player.Int, 32*18 + 3, 32*6 + 170);
-					g.drawString("Sneak: " + player.sneak, 32*18 + 3, 32*6 + 200);
-					g.drawString("Speech: " + player.speech, 32*18 + 3, 32*6 + 230);
-				}
-				else {	//shows items in the inventory
-					//inventory slot 1
-					if(player.inventory[0] == "leather helmet") {
-						g.drawImage(leatherHelm.guy, slot1x, slot1y, null);
+				if(playerMenuState == "spells") {
+					if(player.spells[0] == "fireball") {
+						g.drawImage(fire_ball.guy, slot1x, slot1y, null);
 						
 						//equips the helmet and replaces it's slot with what you were originaly wearing
 						if(mouseCollided(slot1x,slot1y,32,32)) {
 							if(mousemanager.isLeftPressed() && pressDelay == 0) {
-								swapHelm = player.inventory[0];
-								player.inventory[0] = player.helmet;
-								player.helmet = swapHelm;
-								pressDelay = 15;
+								selectingTarget = true;
+								
+								if(selectingTarget) {
+									castSpell_Guards(targetSelectionGuard());
+									castSpell_Enemies(targetSelectionEnemy());
+								}
 							}
 						}
 					}
-					else {
-						if(player.inventory[0] == "mage hood") {
-							g.drawImage(hoodHelm.guy, slot1x, slot1y, null);
+				}
+				
+				
+				if(playerMenuState == "stats") {
+					g.setFont(new Font("Times New Roman",Font.BOLD,18));
+					g.drawString("Hp: " + player.maxHP, 32*18 + 3, 32*6 + 80);
+					g.drawString("Level: " + player.level, 32*18 + 3, 32*6 + 110);
+					g.drawString("Exp: " + player.xp + "/" + player.maxXP, 32*18 + 3, 32*6 + 140);
+					g.drawString("Int: " + player.Int, 32*18 + 3, 32*6 + 170);
+					g.drawString("Sneak: " + player.sneak, 32*18 + 3, 32*6 + 200);
+					g.drawString("Speech: " + player.speech, 32*18 + 3, 32*6 + 230);
+					g.drawString("Luck: " + player.luck, 32*18 + 3, 32*6 + 260);
+					g.drawString("Str: " + player.str, 32*18 + 3, 32*6 + 290);
+				}
+				else {	//shows items in the inventory
+					if(playerMenuState == "inventory") {
+						//inventory slot 1
+						if(player.inventory[0] == "leather helmet") {
+							g.drawImage(leatherHelm.guy, slot1x, slot1y, null);
 							
+							//equips the helmet and replaces it's slot with what you were originaly wearing
 							if(mouseCollided(slot1x,slot1y,32,32)) {
 								if(mousemanager.isLeftPressed() && pressDelay == 0) {
 									swapHelm = player.inventory[0];
@@ -941,8 +1435,8 @@ public class Game implements ActionListener {
 							}
 						}
 						else {
-							if(player.inventory[0] == "thief hood") {
-								g.drawImage(thiefHelm.guy, slot1x, slot1y, null);
+							if(player.inventory[0] == "mage hood") {
+								g.drawImage(hoodHelm.guy, slot1x, slot1y, null);
 								
 								if(mouseCollided(slot1x,slot1y,32,32)) {
 									if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -953,25 +1447,67 @@ public class Game implements ActionListener {
 									}
 								}
 							}
-						}
-					}
-					
-					//inventory slot 2
-					if(player.inventory[1] == "leather helmet") {
-						g.drawImage(leatherHelm.guy, slot2x, slot2y, null);
-						
-						if(mouseCollided(slot2x,slot2y,32,32)) {
-							if(mousemanager.isLeftPressed() && pressDelay == 0) {
-								swapHelm = player.inventory[1];
-								player.inventory[1] = player.helmet;
-								player.helmet = swapHelm;
-								pressDelay = 15;
+							else {
+								if(player.inventory[0] == "thief hood") {
+									g.drawImage(thiefHelm.guy, slot1x, slot1y, null);
+									
+									if(mouseCollided(slot1x,slot1y,32,32)) {
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											swapHelm = player.inventory[0];
+											player.inventory[0] = player.helmet;
+											player.helmet = swapHelm;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[0] == "leather chest") {
+										g.drawImage(leatherChest_I.guy, slot1x, slot1y, null);
+										
+										if(mouseCollided(slot1x,slot1y,32,32)) {
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												swapHelm = player.inventory[0];
+												player.inventory[0] = player.chest;
+												player.chest = swapHelm;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[0] == "thief robe") {
+											g.drawImage(thiefRobe_I.guy, slot1x, slot1y, null);
+											
+											if(mouseCollided(slot1x,slot1y,32,32)) {
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													swapHelm = player.inventory[0];
+													player.inventory[0] = player.chest;
+													player.chest = swapHelm;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[0] == "mage robe") {
+												g.drawImage(mageRobe_I.guy, slot1x, slot1y, null);
+												
+												if(mouseCollided(slot1x,slot1y,32,32)) {
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														swapHelm = player.inventory[0];
+														player.inventory[0] = player.chest;
+														player.chest = swapHelm;
+														pressDelay = 15;
+													}
+												}
+											}
+										}
+									}
+								}
 							}
 						}
-					}
-					else {
-						if(player.inventory[1] == "mage hood") {
-							g.drawImage(hoodHelm.guy, slot2x, slot2y, null);
+						
+						//inventory slot 2
+						if(player.inventory[1] == "leather helmet") {
+							g.drawImage(leatherHelm.guy, slot2x, slot2y, null);
 							
 							if(mouseCollided(slot2x,slot2y,32,32)) {
 								if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -983,8 +1519,8 @@ public class Game implements ActionListener {
 							}
 						}
 						else {
-							if(player.inventory[1] == "thief hood") {
-								g.drawImage(thiefHelm.guy, slot2x, slot2y, null);
+							if(player.inventory[1] == "mage hood") {
+								g.drawImage(hoodHelm.guy, slot2x, slot2y, null);
 								
 								if(mouseCollided(slot2x,slot2y,32,32)) {
 									if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -995,25 +1531,67 @@ public class Game implements ActionListener {
 									}
 								}
 							}
-						}
-					}
-					
-					//inventory slot 3
-					if(player.inventory[2] == "leather helmet") {
-						g.drawImage(leatherHelm.guy, slot3x, slot3y, null);
-						
-						if(mouseCollided(slot3x,slot3y,32,32)) {
-							if(mousemanager.isLeftPressed() && pressDelay == 0) {
-								swapHelm = player.inventory[2];
-								player.inventory[2] = player.helmet;
-								player.helmet = swapHelm;
-								pressDelay = 15;
+							else {
+								if(player.inventory[1] == "thief hood") {
+									g.drawImage(thiefHelm.guy, slot2x, slot2y, null);
+									
+									if(mouseCollided(slot2x,slot2y,32,32)) {
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											swapHelm = player.inventory[1];
+											player.inventory[1] = player.helmet;
+											player.helmet = swapHelm;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[1] == "leather chest") {
+										g.drawImage(leatherChest_I.guy, slot2x, slot2y, null);
+										
+										if(mouseCollided(slot2x,slot2y,32,32)) {
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												swapHelm = player.inventory[1];
+												player.inventory[1] = player.chest;
+												player.chest = swapHelm;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[1] == "thief robe") {
+											g.drawImage(thiefRobe_I.guy, slot2x, slot2y, null);
+											
+											if(mouseCollided(slot2x,slot2y,32,32)) {
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													swapHelm = player.inventory[1];
+													player.inventory[1] = player.chest;
+													player.chest = swapHelm;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[1] == "mage robe") {
+												g.drawImage(mageRobe_I.guy, slot2x, slot2y, null);
+												
+												if(mouseCollided(slot2x,slot2y,32,32)) {
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														swapHelm = player.inventory[1];
+														player.inventory[1] = player.chest;
+														player.chest = swapHelm;
+														pressDelay = 15;
+													}
+												}
+											}
+										}
+									}
+								}
 							}
 						}
-					}
-					else {
-						if(player.inventory[2] == "mage hood") {
-							g.drawImage(hoodHelm.guy, slot3x, slot3y, null);
+						
+						//inventory slot 3
+						if(player.inventory[2] == "leather helmet") {
+							g.drawImage(leatherHelm.guy, slot3x, slot3y, null);
 							
 							if(mouseCollided(slot3x,slot3y,32,32)) {
 								if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1025,8 +1603,8 @@ public class Game implements ActionListener {
 							}
 						}
 						else {
-							if(player.inventory[2] == "thief hood") {
-								g.drawImage(thiefHelm.guy, slot3x, slot3y, null);
+							if(player.inventory[2] == "mage hood") {
+								g.drawImage(hoodHelm.guy, slot3x, slot3y, null);
 								
 								if(mouseCollided(slot3x,slot3y,32,32)) {
 									if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1037,25 +1615,67 @@ public class Game implements ActionListener {
 									}
 								}
 							}
-						}
-					}
-					
-					//inventory slot 4
-					if(player.inventory[3] == "leather helmet") {
-						g.drawImage(leatherHelm.guy, slot4x, slot4y, null);
-						
-						if(mouseCollided(slot4x,slot4y,32,32)) {
-							if(mousemanager.isLeftPressed() && pressDelay == 0) {
-								swapHelm = player.inventory[3];
-								player.inventory[3] = player.helmet;
-								player.helmet = swapHelm;
-								pressDelay = 15;
+							else {
+								if(player.inventory[2] == "thief hood") {
+									g.drawImage(thiefHelm.guy, slot3x, slot3y, null);
+									
+									if(mouseCollided(slot3x,slot3y,32,32)) {
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											swapHelm = player.inventory[2];
+											player.inventory[2] = player.helmet;
+											player.helmet = swapHelm;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[2] == "leather chest") {
+										g.drawImage(leatherChest_I.guy, slot3x, slot3y, null);
+										
+										if(mouseCollided(slot3x,slot3y,32,32)) {
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												swapHelm = player.inventory[2];
+												player.inventory[2] = player.chest;
+												player.chest = swapHelm;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[2] == "thief robe") {
+											g.drawImage(thiefRobe_I.guy, slot3x, slot3y, null);
+											
+											if(mouseCollided(slot3x,slot3y,32,32)) {
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													swapHelm = player.inventory[2];
+													player.inventory[2] = player.chest;
+													player.chest = swapHelm;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[2] == "mage robe") {
+												g.drawImage(mageRobe_I.guy, slot3x, slot3y, null);
+												
+												if(mouseCollided(slot3x,slot3y,32,32)) {
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														swapHelm = player.inventory[2];
+														player.inventory[2] = player.chest;
+														player.chest = swapHelm;
+														pressDelay = 15;
+													}
+												}
+											}
+										}
+									}
+								}
 							}
 						}
-					}
-					else {
-						if(player.inventory[3] == "mage hood") {
-							g.drawImage(hoodHelm.guy, slot4x, slot4y, null);
+						
+						//inventory slot 4
+						if(player.inventory[3] == "leather helmet") {
+							g.drawImage(leatherHelm.guy, slot4x, slot4y, null);
 							
 							if(mouseCollided(slot4x,slot4y,32,32)) {
 								if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1067,8 +1687,8 @@ public class Game implements ActionListener {
 							}
 						}
 						else {
-							if(player.inventory[3] == "thief hood") {
-								g.drawImage(thiefHelm.guy, slot4x, slot4y, null);
+							if(player.inventory[3] == "mage hood") {
+								g.drawImage(hoodHelm.guy, slot4x, slot4y, null);
 								
 								if(mouseCollided(slot4x,slot4y,32,32)) {
 									if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1079,25 +1699,67 @@ public class Game implements ActionListener {
 									}
 								}
 							}
-						}
-					}
-					
-					//inventory slot 5
-					if(player.inventory[4] == "leather helmet") {
-						g.drawImage(leatherHelm.guy, slot5x, slot5y, null);
-						
-						if(mouseCollided(slot5x,slot5y,32,32)) {
-							if(mousemanager.isLeftPressed() && pressDelay == 0) {
-								swapHelm = player.inventory[4];
-								player.inventory[4] = player.helmet;
-								player.helmet = swapHelm;
-								pressDelay = 15;
+							else {
+								if(player.inventory[3] == "thief hood") {
+									g.drawImage(thiefHelm.guy, slot4x, slot4y, null);
+									
+									if(mouseCollided(slot4x,slot4y,32,32)) {
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											swapHelm = player.inventory[3];
+											player.inventory[3] = player.helmet;
+											player.helmet = swapHelm;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[3] == "leather chest") {
+										g.drawImage(leatherChest_I.guy, slot4x, slot4y, null);
+										
+										if(mouseCollided(slot4x,slot4y,32,32)) {
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												swapHelm = player.inventory[3];
+												player.inventory[3] = player.chest;
+												player.chest = swapHelm;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[3] == "thief robe") {
+											g.drawImage(thiefRobe_I.guy, slot4x, slot4y, null);
+											
+											if(mouseCollided(slot4x,slot4y,32,32)) {
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													swapHelm = player.inventory[3];
+													player.inventory[3] = player.chest;
+													player.chest = swapHelm;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[3] == "mage robe") {
+												g.drawImage(mageRobe_I.guy, slot4x, slot4y, null);
+												
+												if(mouseCollided(slot4x,slot4y,32,32)) {
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														swapHelm = player.inventory[3];
+														player.inventory[3] = player.chest;
+														player.chest = swapHelm;
+														pressDelay = 15;
+													}
+												}
+											}
+										}
+									}
+								}
 							}
 						}
-					}
-					else {
-						if(player.inventory[4] == "mage hood") {
-							g.drawImage(hoodHelm.guy, slot5x, slot5y, null);
+						
+						//inventory slot 5
+						if(player.inventory[4] == "leather helmet") {
+							g.drawImage(leatherHelm.guy, slot5x, slot5y, null);
 							
 							if(mouseCollided(slot5x,slot5y,32,32)) {
 								if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1109,8 +1771,8 @@ public class Game implements ActionListener {
 							}
 						}
 						else {
-							if(player.inventory[4] == "thief hood") {
-								g.drawImage(thiefHelm.guy, slot5x, slot5y, null);
+							if(player.inventory[4] == "mage hood") {
+								g.drawImage(hoodHelm.guy, slot5x, slot5y, null);
 								
 								if(mouseCollided(slot5x,slot5y,32,32)) {
 									if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1121,25 +1783,67 @@ public class Game implements ActionListener {
 									}
 								}
 							}
-						}
-					}
-					
-					//inventory slot 6
-					if(player.inventory[5] == "leather helmet") {
-						g.drawImage(leatherHelm.guy, slot6x, slot6y, null);
-						
-						if(mouseCollided(slot6x,slot6y,32,32)) {
-							if(mousemanager.isLeftPressed() && pressDelay == 0) {
-								swapHelm = player.inventory[5];
-								player.inventory[5] = player.helmet;
-								player.helmet = swapHelm;
-								pressDelay = 15;
+							else {
+								if(player.inventory[4] == "thief hood") {
+									g.drawImage(thiefHelm.guy, slot5x, slot5y, null);
+									
+									if(mouseCollided(slot5x,slot5y,32,32)) {
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											swapHelm = player.inventory[4];
+											player.inventory[4] = player.helmet;
+											player.helmet = swapHelm;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[4] == "leather chest") {
+										g.drawImage(leatherChest_I.guy, slot5x, slot5y, null);
+										
+										if(mouseCollided(slot5x,slot5y,32,32)) {
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												swapHelm = player.inventory[4];
+												player.inventory[4] = player.chest;
+												player.chest = swapHelm;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[4] == "thief robe") {
+											g.drawImage(thiefRobe_I.guy, slot5x, slot5y, null);
+											
+											if(mouseCollided(slot5x,slot5y,32,32)) {
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													swapHelm = player.inventory[4];
+													player.inventory[4] = player.chest;
+													player.chest = swapHelm;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[4] == "mage robe") {
+												g.drawImage(mageRobe_I.guy, slot5x, slot5y, null);
+												
+												if(mouseCollided(slot5x,slot5y,32,32)) {
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														swapHelm = player.inventory[4];
+														player.inventory[4] = player.chest;
+														player.chest = swapHelm;
+														pressDelay = 15;
+													}
+												}
+											}
+										}
+									}
+								}
 							}
 						}
-					}
-					else {
-						if(player.inventory[5] == "mage hood") {
-							g.drawImage(hoodHelm.guy, slot6x, slot6y, null);
+						
+						//inventory slot 6
+						if(player.inventory[5] == "leather helmet") {
+							g.drawImage(leatherHelm.guy, slot6x, slot6y, null);
 							
 							if(mouseCollided(slot6x,slot6y,32,32)) {
 								if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1151,8 +1855,8 @@ public class Game implements ActionListener {
 							}
 						}
 						else {
-							if(player.inventory[5] == "thief hood") {
-								g.drawImage(thiefHelm.guy, slot6x, slot6y, null);
+							if(player.inventory[5] == "mage hood") {
+								g.drawImage(hoodHelm.guy, slot6x, slot6y, null);
 								
 								if(mouseCollided(slot6x,slot6y,32,32)) {
 									if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1163,25 +1867,67 @@ public class Game implements ActionListener {
 									}
 								}
 							}
-						}
-					}
-					
-					//inventory slot 7
-					if(player.inventory[6] == "leather helmet") {
-						g.drawImage(leatherHelm.guy, slot7x, slot7y, null);
-						
-						if(mouseCollided(slot7x,slot7y,32,32)) {
-							if(mousemanager.isLeftPressed() && pressDelay == 0) {
-								swapHelm = player.inventory[6];
-								player.inventory[6] = player.helmet;
-								player.helmet = swapHelm;
-								pressDelay = 15;
+							else {
+								if(player.inventory[5] == "thief hood") {
+									g.drawImage(thiefHelm.guy, slot6x, slot6y, null);
+									
+									if(mouseCollided(slot6x,slot6y,32,32)) {
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											swapHelm = player.inventory[5];
+											player.inventory[5] = player.helmet;
+											player.helmet = swapHelm;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[5] == "leather chest") {
+										g.drawImage(leatherChest_I.guy, slot6x, slot6y, null);
+										
+										if(mouseCollided(slot6x,slot6y,32,32)) {
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												swapHelm = player.inventory[5];
+												player.inventory[5] = player.chest;
+												player.chest = swapHelm;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[5] == "thief robe") {
+											g.drawImage(thiefRobe_I.guy, slot6x, slot6y, null);
+											
+											if(mouseCollided(slot6x,slot6y,32,32)) {
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													swapHelm = player.inventory[5];
+													player.inventory[5] = player.chest;
+													player.chest = swapHelm;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[5] == "mage robe") {
+												g.drawImage(mageRobe_I.guy, slot6x, slot6y, null);
+												
+												if(mouseCollided(slot6x,slot6y,32,32)) {
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														swapHelm = player.inventory[5];
+														player.inventory[5] = player.chest;
+														player.chest = swapHelm;
+														pressDelay = 15;
+													}
+												}
+											}
+										}
+									}
+								}
 							}
 						}
-					}
-					else {
-						if(player.inventory[6] == "mage hood") {
-							g.drawImage(hoodHelm.guy, slot7x, slot7y, null);
+						
+						//inventory slot 7
+						if(player.inventory[6] == "leather helmet") {
+							g.drawImage(leatherHelm.guy, slot7x, slot7y, null);
 							
 							if(mouseCollided(slot7x,slot7y,32,32)) {
 								if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1193,8 +1939,8 @@ public class Game implements ActionListener {
 							}
 						}
 						else {
-							if(player.inventory[6] == "thief hood") {
-								g.drawImage(thiefHelm.guy, slot7x, slot7y, null);
+							if(player.inventory[6] == "mage hood") {
+								g.drawImage(hoodHelm.guy, slot7x, slot7y, null);
 								
 								if(mouseCollided(slot7x,slot7y,32,32)) {
 									if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1205,25 +1951,67 @@ public class Game implements ActionListener {
 									}
 								}
 							}
-						}
-					}
-					
-					//inventory slot 8
-					if(player.inventory[7] == "leather helmet") {
-						g.drawImage(leatherHelm.guy, slot8x, slot8y, null);
-						
-						if(mouseCollided(slot8x,slot8y,32,32)) {
-							if(mousemanager.isLeftPressed() && pressDelay == 0) {
-								swapHelm = player.inventory[7];
-								player.inventory[7] = player.helmet;
-								player.helmet = swapHelm;
-								pressDelay = 15;
+							else {
+								if(player.inventory[6] == "thief hood") {
+									g.drawImage(thiefHelm.guy, slot7x, slot7y, null);
+									
+									if(mouseCollided(slot7x,slot7y,32,32)) {
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											swapHelm = player.inventory[6];
+											player.inventory[6] = player.helmet;
+											player.helmet = swapHelm;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[6] == "leather chest") {
+										g.drawImage(leatherChest_I.guy, slot7x, slot7y, null);
+										
+										if(mouseCollided(slot7x,slot7y,32,32)) {
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												swapHelm = player.inventory[6];
+												player.inventory[6] = player.chest;
+												player.chest = swapHelm;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[6] == "thief robe") {
+											g.drawImage(thiefRobe_I.guy, slot7x, slot7y, null);
+											
+											if(mouseCollided(slot7x,slot7y,32,32)) {
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													swapHelm = player.inventory[6];
+													player.inventory[6] = player.chest;
+													player.chest = swapHelm;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[6] == "mage robe") {
+												g.drawImage(mageRobe_I.guy, slot7x, slot7y, null);
+												
+												if(mouseCollided(slot7x,slot7y,32,32)) {
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														swapHelm = player.inventory[6];
+														player.inventory[6] = player.chest;
+														player.chest = swapHelm;
+														pressDelay = 15;
+													}
+												}
+											}
+										}
+									}
+								}
 							}
 						}
-					}
-					else {
-						if(player.inventory[7] == "mage hood") {
-							g.drawImage(hoodHelm.guy, slot8x, slot8y, null);
+						
+						//inventory slot 8
+						if(player.inventory[7] == "leather helmet") {
+							g.drawImage(leatherHelm.guy, slot8x, slot8y, null);
 							
 							if(mouseCollided(slot8x,slot8y,32,32)) {
 								if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1235,8 +2023,8 @@ public class Game implements ActionListener {
 							}
 						}
 						else {
-							if(player.inventory[7] == "thief hood") {
-								g.drawImage(thiefHelm.guy, slot8x, slot8y, null);
+							if(player.inventory[7] == "mage hood") {
+								g.drawImage(hoodHelm.guy, slot8x, slot8y, null);
 								
 								if(mouseCollided(slot8x,slot8y,32,32)) {
 									if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1247,25 +2035,67 @@ public class Game implements ActionListener {
 									}
 								}
 							}
-						}
-					}
-					
-					//inventory slot 9
-					if(player.inventory[8] == "leather helmet") {
-						g.drawImage(leatherHelm.guy, slot9x, slot9y, null);
-						
-						if(mouseCollided(slot9x,slot9y,32,32)) {
-							if(mousemanager.isLeftPressed() && pressDelay == 0) {
-								swapHelm = player.inventory[8];
-								player.inventory[8] = player.helmet;
-								player.helmet = swapHelm;
-								pressDelay = 15;
+							else {
+								if(player.inventory[7] == "thief hood") {
+									g.drawImage(thiefHelm.guy, slot8x, slot8y, null);
+									
+									if(mouseCollided(slot8x,slot8y,32,32)) {
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											swapHelm = player.inventory[7];
+											player.inventory[7] = player.helmet;
+											player.helmet = swapHelm;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[7] == "leather chest") {
+										g.drawImage(leatherChest_I.guy, slot8x, slot8y, null);
+										
+										if(mouseCollided(slot8x,slot8y,32,32)) {
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												swapHelm = player.inventory[7];
+												player.inventory[7] = player.chest;
+												player.chest = swapHelm;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[7] == "thief robe") {
+											g.drawImage(thiefRobe_I.guy, slot8x, slot8y, null);
+											
+											if(mouseCollided(slot8x,slot8y,32,32)) {
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													swapHelm = player.inventory[7];
+													player.inventory[7] = player.chest;
+													player.chest = swapHelm;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[7] == "mage robe") {
+												g.drawImage(mageRobe_I.guy, slot8x, slot8y, null);
+												
+												if(mouseCollided(slot8x,slot8y,32,32)) {
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														swapHelm = player.inventory[7];
+														player.inventory[7] = player.chest;
+														player.chest = swapHelm;
+														pressDelay = 15;
+													}
+												}
+											}
+										}
+									}
+								}
 							}
 						}
-					}
-					else {
-						if(player.inventory[8] == "mage hood") {
-							g.drawImage(hoodHelm.guy, slot9x, slot9y, null);
+						
+						//inventory slot 9
+						if(player.inventory[8] == "leather helmet") {
+							g.drawImage(leatherHelm.guy, slot9x, slot9y, null);
 							
 							if(mouseCollided(slot9x,slot9y,32,32)) {
 								if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1277,8 +2107,8 @@ public class Game implements ActionListener {
 							}
 						}
 						else {
-							if(player.inventory[8] == "thief hood") {
-								g.drawImage(thiefHelm.guy, slot9x, slot9y, null);
+							if(player.inventory[8] == "mage hood") {
+								g.drawImage(hoodHelm.guy, slot9x, slot9y, null);
 								
 								if(mouseCollided(slot9x,slot9y,32,32)) {
 									if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1289,25 +2119,67 @@ public class Game implements ActionListener {
 									}
 								}
 							}
-						}
-					}
-					
-					//inventory slot 10
-					if(player.inventory[9] == "leather helmet") {
-						g.drawImage(leatherHelm.guy, slot10x, slot10y, null);
-						
-						if(mouseCollided(slot10x,slot10y,32,32)) {
-							if(mousemanager.isLeftPressed() && pressDelay == 0) {
-								swapHelm = player.inventory[9];
-								player.inventory[9] = player.helmet;
-								player.helmet = swapHelm;
-								pressDelay = 15;
+							else {
+								if(player.inventory[8] == "thief hood") {
+									g.drawImage(thiefHelm.guy, slot9x, slot9y, null);
+									
+									if(mouseCollided(slot9x,slot9y,32,32)) {
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											swapHelm = player.inventory[8];
+											player.inventory[8] = player.helmet;
+											player.helmet = swapHelm;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[8] == "leather chest") {
+										g.drawImage(leatherChest_I.guy, slot9x, slot9y, null);
+										
+										if(mouseCollided(slot9x,slot9y,32,32)) {
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												swapHelm = player.inventory[8];
+												player.inventory[8] = player.chest;
+												player.chest = swapHelm;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[8] == "thief robe") {
+											g.drawImage(thiefRobe_I.guy, slot9x, slot9y, null);
+											
+											if(mouseCollided(slot9x,slot9y,32,32)) {
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													swapHelm = player.inventory[8];
+													player.inventory[8] = player.chest;
+													player.chest = swapHelm;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[8] == "mage robe") {
+												g.drawImage(mageRobe_I.guy, slot9x, slot9y, null);
+												
+												if(mouseCollided(slot9x,slot9y,32,32)) {
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														swapHelm = player.inventory[8];
+														player.inventory[8] = player.chest;
+														player.chest = swapHelm;
+														pressDelay = 15;
+													}
+												}
+											}
+										}
+									}
+								}
 							}
 						}
-					}
-					else {
-						if(player.inventory[9] == "mage hood") {
-							g.drawImage(hoodHelm.guy, slot10x, slot10y, null);
+						
+						//inventory slot 10
+						if(player.inventory[9] == "leather helmet") {
+							g.drawImage(leatherHelm.guy, slot10x, slot10y, null);
 							
 							if(mouseCollided(slot10x,slot10y,32,32)) {
 								if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1319,8 +2191,8 @@ public class Game implements ActionListener {
 							}
 						}
 						else {
-							if(player.inventory[9] == "thief hood") {
-								g.drawImage(thiefHelm.guy, slot10x, slot10y, null);
+							if(player.inventory[9] == "mage hood") {
+								g.drawImage(hoodHelm.guy, slot10x, slot10y, null);
 								
 								if(mouseCollided(slot10x,slot10y,32,32)) {
 									if(mousemanager.isLeftPressed() && pressDelay == 0) {
@@ -1328,6 +2200,62 @@ public class Game implements ActionListener {
 										player.inventory[9] = player.helmet;
 										player.helmet = swapHelm;
 										pressDelay = 15;
+									}
+								}
+							}
+							else {
+								if(player.inventory[9] == "thief hood") {
+									g.drawImage(thiefHelm.guy, slot10x, slot10y, null);
+									
+									if(mouseCollided(slot10x,slot10y,32,32)) {
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											swapHelm = player.inventory[9];
+											player.inventory[9] = player.helmet;
+											player.helmet = swapHelm;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[9] == "leather chest") {
+										g.drawImage(leatherChest_I.guy, slot10x, slot10y, null);
+										
+										if(mouseCollided(slot10x,slot10y,32,32)) {
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												swapHelm = player.inventory[9];
+												player.inventory[9] = player.chest;
+												player.chest = swapHelm;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[9] == "thief robe") {
+											g.drawImage(thiefRobe_I.guy, slot10x, slot10y, null);
+											
+											if(mouseCollided(slot10x,slot10y,32,32)) {
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													swapHelm = player.inventory[9];
+													player.inventory[9] = player.chest;
+													player.chest = swapHelm;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[9] == "mage robe") {
+												g.drawImage(mageRobe_I.guy, slot10x, slot10y, null);
+												
+												if(mouseCollided(slot10x,slot10y,32,32)) {
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														swapHelm = player.inventory[9];
+														player.inventory[9] = player.chest;
+														player.chest = swapHelm;
+														pressDelay = 15;
+													}
+												}
+											}
+										}
 									}
 								}
 							}
@@ -1356,6 +2284,11 @@ public class Game implements ActionListener {
 							g.drawImage(mediumThief.guy, 32*18, 32*6 + 15, null);
 						}
 					}
+				}
+				
+				if(talkingToCitizen) {
+					g.drawImage(toolbar_human.guy, 32*18, 32*6 + 15, null);
+					g.drawImage(toolbar_leather.guy, 32*18, 32*6 + 15, null);
 				}
 			}
 		}
@@ -1693,6 +2626,24 @@ public class Game implements ActionListener {
 			pressDelay--;
 		}
 		
+		if(leather_chest.restockTimer > 0) {
+			leather_chest.restockTimer--;
+		}
+		
+		if(playerWeapon == Weapon.woodenSword) {
+			weaponDamage = 5;
+		}
+		else {
+			if(playerWeapon == Weapon.wand) {
+				weaponDamage = 1;
+			}
+			else {
+				if(playerWeapon == Weapon.shank) {
+					weaponDamage = 4;
+				}
+			}
+		}
+		
 		//armor restock timer and caught checking timer
 		if(armorRestock > 0) {
 			armorRestock--;
@@ -1719,6 +2670,48 @@ public class Game implements ActionListener {
 			}
 		}
 		
+		if(talkingToClerk) {
+			if(mouseCollided(okButton.x,okButton.y,okButton.w,okButton.h)) {
+				okButton.active = true;
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					if(dialogueSlide > -1) {	//change back to 1 later when i add decisions
+						dialogueSlide++;
+						pressDelay = 15;
+						
+						if(dialogueSlide > 1) {
+							talkingToClerk = false;
+							dialogueSlide = 0;
+						}
+					}
+				}
+			}
+			else {
+				okButton.active = false;
+			}
+		}
+		
+		if(talkingToCitizen) {
+			if(mouseCollided(okButton.x,okButton.y,okButton.w,okButton.h)) {
+				okButton.active = true;
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					if(dialogueSlide > -1) {	//change back to 1 later when i add decisions
+						dialogueSlide++;
+						pressDelay = 15;
+						
+						if(dialogueSlide > 0) {
+							talkingToCitizen = false;
+							dialogueSlide = 0;
+						}
+					}
+				}
+			}
+			else {
+				okButton.active = false;
+			}
+		}
+		
 		//caught is chosen randomly based on the player's sneak stat, this catches you if it is below 10
 		//so if you have 10 sneak you have a 10% or 1/10 chance to get away with it
 		if(caught < 10 && caughtChecker == 0) {
@@ -1730,11 +2723,26 @@ public class Game implements ActionListener {
 		if(mousemanager.mousex > armorx && mousemanager.mousex < armorx + armorw && mousemanager.mousey > armory && mousemanager.mousey < armory + armorh) {
 			if(mousemanager.isLeftPressed() && armorVisible == true) {
 				armorVisible = false;
-				player.addToInv("leather helmet");	//see Player.java for inventory code
-				armorRestock = 125;
-				//sets caught to a random number between 0 and the player's sneak stat
-				caught = random.nextInt(player.sneak);
-				caughtChecker = 25;	//25 is about 1 second
+				steal("leather helmet");
+				armorRestock = 125; 
+			}
+			else {
+				if(mousemanager.isRightPressed() && armorVisible) {
+					buyMenuVisible = true;
+				}
+			}
+		}
+		else {
+			if(mousemanager.isLeftPressed() || mousemanager.isRightPressed()) {
+				buyMenuVisible = false;
+			}
+		}
+		
+		if(mouseCollided(leather_chest.x,leather_chest.y,leather_chest.w,leather_chest.h)) {
+			if(mousemanager.isLeftPressed() && pressDelay == 0) {
+				//leather_chest.restockTimer = 100000;
+				steal("leather chest");
+				leather_chest.restockTimer = 125;
 			}
 		}
 		
@@ -1742,6 +2750,7 @@ public class Game implements ActionListener {
 			if(mousemanager.mousex > 32*16 && mousemanager.mousex < 32*17 && mousemanager.mousey > HEIGHT-181 && mousemanager.mousey < HEIGHT-149) {
 				if(mousemanager.isLeftPressed()) {
 					location = "town";
+					talkingToCitizen = false;
 				}
 			}
 		}
@@ -2092,6 +3101,10 @@ public class Game implements ActionListener {
 						player.speech += speechBonus;
 						state = "game";
 						pressDelay = 15;
+						
+						if(player.Class == "mage") {
+							player.addToSpells("fireball");
+						}
 					}
 				}
 			}
