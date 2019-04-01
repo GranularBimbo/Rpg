@@ -519,6 +519,7 @@ public class Game implements ActionListener {
 			
 			if(guard.hp == 0) {
 				guardRespawn = 12000;
+				player.xp += 15;
 				guard.hp = -1;
 			}
 			
@@ -1010,16 +1011,21 @@ public class Game implements ActionListener {
 				}
 			}
 			
+			
+			//xp and rewards
 			if(chicken.hp <= 0 && location == "woods") {
 				if(chicken.hp != -2) {
 					chicken.hp = -1;
 				}
 			}
 			
+			
 			if(chicken.hp == -1) {
 				player.xp += 5;
+				chicken.hostile = false;
 				chicken.hp = -2;
 			}
+
 			
 			//guard attacking
 			if(mouseCollided(guard.x,guard.y,guard.w,guard.h)) {

@@ -51,11 +51,17 @@ public class Player {
 	//levels up the character
 	public void levelUp() {
 		if(xp >= maxXP) {
+			if(xp > maxXP) {
+				xp = (xp - maxXP);
+			}
+			else {
+				xp = 0;
+			}
+			
 			level++;
 			gold += 30;
 			maxHP += 10;
 			hp = maxHP;
-			xp = 0;
 			maxXP += xpChange;
 			
 			xpChange = Math.floor(Math.pow(2, this.level));
