@@ -14,6 +14,8 @@ import java.util.Random;
 import com.game.Weapon;
 import com.game.Dialogue;
 
+import com.artificial_neural_network.*;
+
 import com.managers.*;
 import com.game.displays.*;
 
@@ -37,6 +39,10 @@ public class Game implements ActionListener {
 	public int guardRespawn, fireballX, fireballY;
 	public Guard target;
 	public Enemy enemyTarget;
+	
+	public int averageDamage, timesYouDeltDamage, lastDamageDelt;
+	
+	public Ann ann;
 	
 	
 	public int clerkx, clerky, clerkw, clerkh;
@@ -193,6 +199,12 @@ public class Game implements ActionListener {
 		player = new Player();
 		cursor = new ImageManager("assets/img/cursor.png");
 		dialogueSlide = 0;
+		
+		averageDamage = 0;
+		timesYouDeltDamage = 0;
+		lastDamageDelt = 0;
+		
+		ann = new Ann();
 		
 		fireballX = 32*16;
 		fireballY = 32*10;
@@ -516,6 +528,7 @@ public class Game implements ActionListener {
 			if(guard.hp < -1) {
 				guard.hp = 0;
 			}
+			
 			
 			if(guard.hp == 0) {
 				guardRespawn = 12000;
@@ -1036,7 +1049,18 @@ public class Game implements ActionListener {
 					}
 					else {
 						//algorythm that decides how much damage you deal
-						damage = ((weaponDamage*player.str - (weaponDamage*player.str / player.luck)) / (random.nextInt(player.luck - random.nextInt(5)) + 1));
+						
+						if(lastDamageDelt == 0) {
+							damage = ((weaponDamage*player.str - (weaponDamage*player.str / player.luck)) / (random.nextInt(player.luck - random.nextInt(5)) + 1));
+							lastDamageDelt = damage;
+						}
+						else {
+							lastDamageDelt = damage;
+							damage = ((weaponDamage*player.str - (weaponDamage*player.str / player.luck)) / (random.nextInt(player.luck - random.nextInt(5)) + 1));
+						}
+						
+						ann.assignAverageDamage(lastDamageDelt, damage, timesYouDeltDamage);
+						System.out.println("" + ann.e);
 						guard.hp -= damage;
 						dialogueSlide = -2;
 						hostile = true;
