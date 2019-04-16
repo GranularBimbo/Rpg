@@ -1,8 +1,11 @@
 package com.game;
 
+import java.util.Random;
+
 public class Guard{
 	public int x,y,w,h,attack,damage,hp,maxHP;
 	public String text;
+	public Random random;
 	
 	public Guard(int x, int y, int attack) {
 		this.x = x;
@@ -13,10 +16,12 @@ public class Guard{
 		this.damage = 0;
 		maxHP = 100;
 		hp = maxHP;
+		
+		this.random = new Random();
 	}
 	
-	public void calcDamage() {
-		damage = 20;	//will be changed later
+	public void calcDamage(int helmet, int chest, int legs) {
+		damage = (((attack*(random.nextInt(3)+1))+(random.nextInt(9)))-(helmet+chest+legs));
 	}
 	
 	public void catchPlayer() {

@@ -3,13 +3,17 @@ package com.artificial_neural_network;
 public class Neuron {
 	public Neuron connections[];
 	public double connectionWeight[];
-	public double inputValue, outputValue1, outputValue2;
+	public double inputValue, outputValue;
+	public double[] inputArrayValue;
+	public double[] outputArrayValue;
 	
 	public Neuron() {
-		connections = new Neuron[2];
-		connectionWeight = new double[2];
+		//these contain connection information and connection weight
+		connections = new Neuron[4];	//4 slots incase i add an extra layer for deeper learning
+		connectionWeight = new double[4];
 	}
 	
+	//creates a connection between neurons
 	public void connect(double weight, Neuron startingNeuron, Neuron targetNeuron) {
 		for(int i = 0; i < connections.length; i++) {
 			if(startingNeuron.connections[i] == null) {
@@ -25,7 +29,11 @@ public class Neuron {
 		}
 	}
 	
-	public void assignInputValue(double value) {	//only for first layer neurons
+	public void assignInputValue(double value) {	//only for input layer neurons
 		this.inputValue = value;
+	}
+	
+	public void assignInputArrayValue(double[] value) {
+		this.inputArrayValue = value;
 	}
 }

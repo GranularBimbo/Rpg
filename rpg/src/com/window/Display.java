@@ -18,10 +18,11 @@ public class Display extends JFrame {
 		
 		jframe.setSize(width,height);
 		jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		jframe.setTitle("rpg");
+		jframe.setTitle("The Quest for the Holy Cream Betweens");
 		jframe.setVisible(true);
 		jframe.setResizable(false);
-		jframe.setLocation(400,150);
+		//jframe.setLocation(400,150);
+		jframe.setLocation(330,150);
 		canvas.setSize(width,height);
 		canvas.setFocusable(false);
 		

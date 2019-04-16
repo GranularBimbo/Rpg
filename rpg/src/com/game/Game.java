@@ -11,7 +11,6 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.util.Random;
-import com.game.Weapon;
 import com.game.Dialogue;
 
 import com.artificial_neural_network.*;
@@ -40,10 +39,9 @@ public class Game implements ActionListener {
 	public Guard target;
 	public Enemy enemyTarget;
 	
-	public int averageDamage, timesYouDeltDamage, lastDamageDelt;
+	public int averageDamage, timesYouDeltDamage, lastDamageDelt, helm, ch, pa;
 	
 	public Ann ann;
-	
 	
 	public int clerkx, clerky, clerkw, clerkh;
 	
@@ -52,8 +50,21 @@ public class Game implements ActionListener {
 	//enemies
 	public Enemy chicken;
 	
+	//quests
+	Quest weirdTree;
+	
 	//shop items
 	public ShopItem leather_chest;
+	public ShopItem thief_hood;
+	public ShopItem thief_robe;
+	public ShopItem mage_hood;
+	public ShopItem mage_robe;
+	public ShopItem woodSword;
+	public ShopItem SteelSword;
+	public ShopItem Dagger;
+	public ShopItem Shank;
+	public ShopItem Wand;
+	public ShopItem Staff;
 	
 	//people
 	public Person armorerClerk;
@@ -61,7 +72,8 @@ public class Game implements ActionListener {
 	
 	Random random;	//creates the random game object
 	
-	Weapon playerWeapon;
+	String playerWeapon;
+	String holdingSpot;
 	
 	//dialogues
 	Dialogue caughtDialogue;
@@ -79,6 +91,12 @@ public class Game implements ActionListener {
 	public ImageManager staff;
 	public ImageManager shank;
 	public ImageManager dagger;
+	public ImageManager woodenSword_I;
+	public ImageManager steelSword_I;
+	public ImageManager wand_I;
+	public ImageManager staff_I;
+	public ImageManager shank_I;
+	public ImageManager dagger_I;
 	
 	//enemy images
 	public ImageManager chicken_i;
@@ -94,6 +112,13 @@ public class Game implements ActionListener {
 	public ImageManager blacksmith;
 	public ImageManager castle;
 	public ImageManager woods;
+	public ImageManager woods2;
+	public ImageManager woods3;
+	public ImageManager woods4;
+	public ImageManager woods5;
+	public ImageManager woods6;
+	public ImageManager woods7;
+	public ImageManager camp;
 	
 	//spells
 	public ImageManager fire_ball;
@@ -146,6 +171,9 @@ public class Game implements ActionListener {
 	public ImageManager southButtonActive;
 	public ImageManager northButton;
 	public ImageManager northButtonActive;
+	public ImageManager compass;
+	public ImageManager backpack;
+	public ImageManager magic;
 	
 	//UI
 	public ImageManager bigOrcHead;
@@ -184,6 +212,8 @@ public class Game implements ActionListener {
 	public Button okButton;
 	public Button south;
 	public Button north;
+	public Button west;
+	public Button east;
 	
 	//player, window, and game state
 	Player player;
@@ -205,6 +235,7 @@ public class Game implements ActionListener {
 		lastDamageDelt = 0;
 		
 		ann = new Ann();
+		ann.adjustLocationConnections(false, 0, 0, ann.loc1Connections);
 		
 		fireballX = 32*16;
 		fireballY = 32*10;
@@ -225,6 +256,12 @@ public class Game implements ActionListener {
 		staff = new ImageManager("assets/img/weapons/staff.png");
 		shank = new ImageManager("assets/img/weapons/shank.png");
 		dagger = new ImageManager("assets/img/weapons/dagger.png");
+		woodenSword_I = new ImageManager("assets/img/inventory/weapons/woodenSword.png");
+		steelSword_I = new ImageManager("assets/img/inventory/weapons/steelSword.png");
+		wand_I = new ImageManager("assets/img/inventory/weapons/wand.png");
+		staff_I = new ImageManager("assets/img/inventory/weapons/staff.png");
+		shank_I = new ImageManager("assets/img/inventory/weapons/shank.png");
+		dagger_I = new ImageManager("assets/img/inventory/weapons/dagger.png");
 		
 		//big things
 		bigOrcHead = new ImageManager("assets/img/heads/BigOrcHead.png");
@@ -248,6 +285,13 @@ public class Game implements ActionListener {
 		town2 = new ImageManager("assets/img/locations/town2.png");
 		armorer = new ImageManager("assets/img/locations/armorer.jpg");
 		woods = new ImageManager("assets/img/locations/woods.jpg");
+		woods2 = new ImageManager("assets/img/locations/woods2.png");
+		woods3 = new ImageManager("assets/img/locations/woods3.png");
+		woods4 = new ImageManager("assets/img/locations/woods4.png");
+		woods5 = new ImageManager("assets/img/locations/woods5.png");
+		woods6 = new ImageManager("assets/img/locations/woods6.png");
+		woods7 = new ImageManager("assets/img/locations/woods7.png");
+		camp = new ImageManager("assets/img/locations/camp.png");
 		blacksmith = new ImageManager("assets/img/locations/weapons.jpg");
 		castle = new ImageManager("assets/img/locations/castle.jpg");
 		
@@ -277,6 +321,9 @@ public class Game implements ActionListener {
 		southButtonActive = new ImageManager("assets/img/buttons/southActive.png");
 		northButton = new ImageManager("assets/img/buttons/north.png");
 		northButtonActive = new ImageManager("assets/img/buttons/northActive.png");
+		compass = new ImageManager("assets/img/buttons/compass.png");
+		backpack = new ImageManager("assets/img/buttons/backpack.png");
+		magic = new ImageManager("assets/img/buttons/magic.png");
 		
 		this.WIDTH = w;
 		this.HEIGHT = h;
@@ -350,6 +397,50 @@ public class Game implements ActionListener {
 		pressDelay = 25;
 	}
 	
+	public void buy(ShopItem itemObject,String itemName) {
+		if(player.gold >= itemObject.price) {
+			player.gold -= itemObject.price;
+			player.addToInv(itemName);
+			pressDelay = 25;
+			itemObject.restockTimer = 125;
+		}
+		else {
+			System.out.println("Insufficient funds");
+		}
+	}
+	
+	public void armorCheck() {
+		if(player.helmet == "leather helmet") {
+			helm = 5;
+		}
+		else {
+			if(player.helmet == "mage hood") {
+				helm = 3;
+			}
+			else {
+				if(player.helmet == "thief hood") {
+					helm = 3;
+				}
+			}
+		}
+		
+		if(player.chest == "leather chest") {
+			ch = 7;
+		}
+		else {
+			if(player.chest == "mage robe") {
+				ch = 4;
+			}
+			else {
+				if(player.chest == "thief robe") {
+					ch = 4;
+				}
+			}
+		}
+		
+		pa = 2;
+	}
+	
 	public void init() {
 		running = true;
 		state = "main menu";
@@ -376,8 +467,10 @@ public class Game implements ActionListener {
 		playerMenuLeft = new Button(false,32*20 + 10,32*6 + 10,50,50);
 		playerMenuRight = new Button(false,32*20 + 70,32*6 + 10,50,50);
 		okButton = new Button(false,32*8,32*20,50,50);
-		south = new Button(false,32*29,32*21 - 15,50,50);
-		north = new Button(false,32*29,32*20 - 45,50,50);
+		south = new Button(false,32*35,32*21 - 1,50,50);
+		north = new Button(false,32*35,32*20 - 66,50,50);
+		west = new Button(false,32*34-20,north.y+50,50,50);
+		east = new Button(false,32*36+20,north.y+50,50,50);
 		creatingCharacter = false;
 		wanted = false;
 		hostile = false;
@@ -390,8 +483,15 @@ public class Game implements ActionListener {
 		clerkh = 64;
 		
 		//shop items
-		leather_chest = new ShopItem(32*12,32*4,32,32);
-		
+		leather_chest = new ShopItem(32*12,32*4,32,32,30);
+		thief_hood = new ShopItem(32*14,32*4,32,32,5);
+		thief_robe = new ShopItem(32*16,32*4,32,32,15);
+		mage_hood = new ShopItem(32*18,32*4,32,32,5);
+		mage_robe = new ShopItem(32*20,32*4,32,32,15);
+		woodSword = new ShopItem(32*12,32*4,32,32,20);
+		SteelSword = new ShopItem(32*14,32*4,32,32,50);
+		Shank = new ShopItem(32*16,32*4,32,32,3);
+		Dagger = new ShopItem(32*18,32*4,32,32,20);
 		//enemies
 		chicken = new Enemy(32*16,32*15,32,32,1,10);
 		
@@ -418,9 +518,13 @@ public class Game implements ActionListener {
 		
 		guard = new Guard(32*4,32*10,20);
 		
+		
+		//quests
+		weirdTree = new Quest("Weird Tree","Find and chop down the weird tree",10,10);
+		
 		//inventory slot positions
-		slot1x = 32*18 + 10;
-		slot1y = 32*6 + 74;
+		slot1x = 32*34 + 20;
+		slot1y = 12 + 74;
 		
 		slot2x = slot1x + 42;	//42 is the image's width + 10 so there is some space between them
 		slot2y = slot1y;
@@ -506,9 +610,5488 @@ public class Game implements ActionListener {
 		g = bs.getDrawGraphics();
 		
 		update(g);
+		update2(g);
+		update3(g);
 		
 		bs.show();
 		g.dispose();
+	}
+	
+	public void update3(Graphics graphics) {
+		if(mousemanager.mousex > armorx && mousemanager.mousex < armorx + armorw && mousemanager.mousey > armory && mousemanager.mousey < armory + armorh && location == "armorer" && armorVisible) {
+			g.setFont(new Font("Times New Roman",Font.BOLD,30));
+			
+			g.setColor(Color.black);
+			g.drawRect(mousemanager.mousex + 20, mousemanager.mousey + 50, 300, 100);
+			
+			g.setColor(Color.gray.darker());
+			g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
+			
+			g.setColor(Color.black);
+			g.drawString("Leather helm: 10 gold", mousemanager.mousex + 32, mousemanager.mousey + 110);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,16));
+			g.drawString("Left click to buy", mousemanager.mousex + 125, mousemanager.mousey + 130);
+			g.drawString("Right click to steal", mousemanager.mousex + 118, mousemanager.mousey + 145);
+		}
+		
+		if(mouseCollided(leather_chest.x,leather_chest.y,leather_chest.w,leather_chest.h) && location == "armorer" && leather_chest.restockTimer < 1) {
+			g.setFont(new Font("Times New Roman",Font.BOLD,30));
+			
+			g.setColor(Color.black);
+			g.drawRect(mousemanager.mousex + 20, mousemanager.mousey + 50, 300, 100);
+			
+			g.setColor(Color.gray.darker());
+			g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
+			
+			g.setColor(Color.black);
+			g.drawString("Leather chest: " + leather_chest.price + " gold", mousemanager.mousex + 31, mousemanager.mousey + 110);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,16));
+			g.drawString("Left click to buy", mousemanager.mousex + 125, mousemanager.mousey + 130);
+			g.drawString("Right click to steal", mousemanager.mousex + 118, mousemanager.mousey + 145);
+		}
+		
+		if(mouseCollided(thief_hood.x,thief_hood.y,thief_hood.w,thief_hood.h) && location == "armorer" && thief_hood.restockTimer < 1) {
+			g.setFont(new Font("Times New Roman",Font.BOLD,30));
+			
+			g.setColor(Color.black);
+			g.drawRect(mousemanager.mousex + 20, mousemanager.mousey + 50, 300, 100);
+			
+			g.setColor(Color.gray.darker());
+			g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
+			
+			g.setColor(Color.black);
+			g.drawString("Thief hood: " + thief_hood.price + " gold", mousemanager.mousex + 57, mousemanager.mousey + 110);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,16));
+			g.drawString("Left click to buy", mousemanager.mousex + 125, mousemanager.mousey + 130);
+			g.drawString("Right click to steal", mousemanager.mousex + 118, mousemanager.mousey + 145);
+		}
+		
+		if(mouseCollided(thief_robe.x,thief_robe.y,thief_robe.w,thief_robe.h) && location == "armorer" && thief_robe.restockTimer < 1) {
+			g.setFont(new Font("Times New Roman",Font.BOLD,30));
+			
+			g.setColor(Color.black);
+			g.drawRect(mousemanager.mousex + 20, mousemanager.mousey + 50, 300, 100);
+			
+			g.setColor(Color.gray.darker());
+			g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
+			
+			g.setColor(Color.black);
+			g.drawString("Thief robe: " + thief_robe.price + " gold", mousemanager.mousex + 57, mousemanager.mousey + 110);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,16));
+			g.drawString("Left click to buy", mousemanager.mousex + 125, mousemanager.mousey + 130);
+			g.drawString("Right click to steal", mousemanager.mousex + 118, mousemanager.mousey + 145);
+		}
+		
+		if(mouseCollided(mage_hood.x,mage_hood.y,mage_hood.w,mage_hood.h) && location == "armorer" && mage_hood.restockTimer < 1) {
+			g.setFont(new Font("Times New Roman",Font.BOLD,30));
+			
+			g.setColor(Color.black);
+			g.drawRect(mousemanager.mousex + 20, mousemanager.mousey + 50, 300, 100);
+			
+			g.setColor(Color.gray.darker());
+			g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
+			
+			g.setColor(Color.black);
+			g.drawString("Mage hood: " + mage_hood.price + " gold", mousemanager.mousex + 60, mousemanager.mousey + 110);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,16));
+			g.drawString("Left click to buy", mousemanager.mousex + 125, mousemanager.mousey + 130);
+			g.drawString("Right click to steal", mousemanager.mousex + 118, mousemanager.mousey + 145);
+		}
+		
+		if(mouseCollided(mage_robe.x,mage_robe.y,mage_robe.w,mage_robe.h) && location == "armorer" && mage_robe.restockTimer < 1) {
+			g.setFont(new Font("Times New Roman",Font.BOLD,30));
+			
+			g.setColor(Color.black);
+			g.drawRect(mousemanager.mousex + 20, mousemanager.mousey + 50, 300, 100);
+			
+			g.setColor(Color.gray.darker());
+			g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
+			
+			g.setColor(Color.black);
+			g.drawString("Mage robe: " + mage_robe.price + " gold", mousemanager.mousex + 60, mousemanager.mousey + 110);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,16));
+			g.drawString("Left click to buy", mousemanager.mousex + 125, mousemanager.mousey + 130);
+			g.drawString("Right click to steal", mousemanager.mousex + 118, mousemanager.mousey + 145);
+		}
+		
+		if(mouseCollided(woodSword.x,woodSword.y,woodSword.w,woodSword.h) && location == "blacksmith" && woodSword.restockTimer < 1) {
+			g.setFont(new Font("Times New Roman",Font.BOLD,30));
+			
+			g.setColor(Color.black);
+			g.drawRect(mousemanager.mousex + 20, mousemanager.mousey + 50, 300, 100);
+			
+			g.setColor(Color.gray.darker());
+			g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
+			
+			g.setColor(Color.black);
+			g.drawString("Wood sword: " + woodSword.price + " gold", mousemanager.mousex + 40, mousemanager.mousey + 110);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,16));
+			g.drawString("Left click to buy", mousemanager.mousex + 125, mousemanager.mousey + 130);
+			g.drawString("Right click to steal", mousemanager.mousex + 118, mousemanager.mousey + 145);
+		}
+		
+		if(mouseCollided(SteelSword.x,SteelSword.y,SteelSword.w,SteelSword.h) && location == "blacksmith" && SteelSword.restockTimer < 1) {
+			g.setFont(new Font("Times New Roman",Font.BOLD,30));
+			
+			g.setColor(Color.black);
+			g.drawRect(mousemanager.mousex + 20, mousemanager.mousey + 50, 300, 100);
+			
+			g.setColor(Color.gray.darker());
+			g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
+			
+			g.setColor(Color.black);
+			g.drawString("Steel sword: " + SteelSword.price + " gold", mousemanager.mousex + 47, mousemanager.mousey + 110);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,16));
+			g.drawString("Left click to buy", mousemanager.mousex + 125, mousemanager.mousey + 130);
+			g.drawString("Right click to steal", mousemanager.mousex + 118, mousemanager.mousey + 145);
+		}
+		
+		if(mouseCollided(Shank.x,Shank.y,Shank.w,Shank.h) && location == "blacksmith" && Shank.restockTimer < 1) {
+			g.setFont(new Font("Times New Roman",Font.BOLD,30));
+			
+			g.setColor(Color.black);
+			g.drawRect(mousemanager.mousex + 20, mousemanager.mousey + 50, 300, 100);
+			
+			g.setColor(Color.gray.darker());
+			g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
+			
+			g.setColor(Color.black);
+			g.drawString("Shank: " + Shank.price + " gold", mousemanager.mousex + 90, mousemanager.mousey + 110);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,16));
+			g.drawString("Left click to buy", mousemanager.mousex + 125, mousemanager.mousey + 130);
+			g.drawString("Right click to steal", mousemanager.mousex + 118, mousemanager.mousey + 145);
+		}
+		
+		if(mouseCollided(Dagger.x,Dagger.y,Dagger.w,Dagger.h) && location == "blacksmith" && Dagger.restockTimer < 1) {
+			g.setFont(new Font("Times New Roman",Font.BOLD,30));
+			
+			g.setColor(Color.black);
+			g.drawRect(mousemanager.mousex + 20, mousemanager.mousey + 50, 300, 100);
+			
+			g.setColor(Color.gray.darker());
+			g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
+			
+			g.setColor(Color.black);
+			g.drawString("Dagger: " + Dagger.price + " gold", mousemanager.mousex + 85, mousemanager.mousey + 110);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,16));
+			g.drawString("Left click to buy", mousemanager.mousex + 125, mousemanager.mousey + 130);
+			g.drawString("Right click to steal", mousemanager.mousex + 118, mousemanager.mousey + 145);
+		}
+		
+		//shows the custom cursor image at the mouse's x and y
+		g.drawImage(cursor.guy, mousemanager.mousex, mousemanager.mousey, null);
+	}
+	
+	public void update2(Graphics graphics) {
+		//inventory slot 1
+		if(player.inventory[0] == "leather helmet") {
+			g.drawImage(leatherHelm.guy, slot1x, slot1y, null);
+			
+			//equips the helmet and replaces it's slot with what you were originaly wearing
+			if(mouseCollided(slot1x,slot1y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					swapHelm = player.inventory[0];
+					player.inventory[0] = player.helmet;
+					player.helmet = swapHelm;
+					pressDelay = 15;
+				}
+			}
+		}
+		else {
+			if(player.inventory[0] == "mage hood") {
+				g.drawImage(hoodHelm.guy, slot1x, slot1y, null);
+				
+				if(mouseCollided(slot1x,slot1y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					
+					if(mousemanager.isLeftPressed() && pressDelay == 0) {
+						swapHelm = player.inventory[0];
+						player.inventory[0] = player.helmet;
+						player.helmet = swapHelm;
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				if(player.inventory[0] == "thief hood") {
+					g.drawImage(thiefHelm.guy, slot1x, slot1y, null);
+					
+					if(mouseCollided(slot1x,slot1y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						
+						if(mousemanager.isLeftPressed() && pressDelay == 0) {
+							swapHelm = player.inventory[0];
+							player.inventory[0] = player.helmet;
+							player.helmet = swapHelm;
+							pressDelay = 15;
+						}
+					}
+				}
+				else {
+					if(player.inventory[0] == "leather chest") {
+						g.drawImage(leatherChest_I.guy, slot1x, slot1y, null);
+						
+						if(mouseCollided(slot1x,slot1y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							
+							if(mousemanager.isLeftPressed() && pressDelay == 0) {
+								swapHelm = player.inventory[0];
+								player.inventory[0] = player.chest;
+								player.chest = swapHelm;
+								pressDelay = 15;
+							}
+						}
+					}
+					else {
+						if(player.inventory[0] == "thief robe") {
+							g.drawImage(thiefRobe_I.guy, slot1x, slot1y, null);
+							
+							if(mouseCollided(slot1x,slot1y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								
+								if(mousemanager.isLeftPressed() && pressDelay == 0) {
+									swapHelm = player.inventory[0];
+									player.inventory[0] = player.chest;
+									player.chest = swapHelm;
+									pressDelay = 15;
+								}
+							}
+						}
+						else {
+							if(player.inventory[0] == "mage robe") {
+								g.drawImage(mageRobe_I.guy, slot1x, slot1y, null);
+								
+								if(mouseCollided(slot1x,slot1y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									
+									if(mousemanager.isLeftPressed() && pressDelay == 0) {
+										swapHelm = player.inventory[0];
+										player.inventory[0] = player.chest;
+										player.chest = swapHelm;
+										pressDelay = 15;
+									}
+								}
+							}
+							else {
+								if(player.inventory[0] == "woodenSword") {
+									g.drawImage(woodenSword_I.guy, slot1x, slot1y, null);
+									
+									//equips the helmet and replaces it's slot with what you were originaly wearing
+									if(mouseCollided(slot1x,slot1y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											holdingSpot = "woodenSword";
+											player.inventory[0] = playerWeapon;
+											playerWeapon = holdingSpot;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[0] == "dagger") {
+										g.drawImage(dagger_I.guy, slot1x, slot1y, null);
+										
+										//equips the helmet and replaces it's slot with what you were originaly wearing
+										if(mouseCollided(slot1x,slot1y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												holdingSpot = "dagger";
+												player.inventory[0] = playerWeapon;
+												playerWeapon = holdingSpot;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[0] == "wand") {
+											g.drawImage(wand_I.guy, slot1x, slot1y, null);
+											
+											//equips the helmet and replaces it's slot with what you were originaly wearing
+											if(mouseCollided(slot1x,slot1y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													holdingSpot = "wand";
+													player.inventory[0] = playerWeapon;
+													playerWeapon = holdingSpot;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[0] == "shank") {
+												g.drawImage(shank_I.guy, slot1x, slot1y, null);
+												
+												//equips the helmet and replaces it's slot with what you were originaly wearing
+												if(mouseCollided(slot1x,slot1y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														holdingSpot = "shank";
+														player.inventory[0] = playerWeapon;
+														playerWeapon = holdingSpot;
+														pressDelay = 15;
+													}
+												}
+											}
+											else {
+												if(player.inventory[0] == "staff") {
+													g.drawImage(staff_I.guy, slot1x, slot1y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot1x,slot1y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "staff";
+															player.inventory[0] = playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+												else {
+													if(player.inventory[0] == "steelSword") {
+														g.drawImage(steelSword_I.guy, slot1x, slot1y, null);
+														
+														//equips the helmet and replaces it's slot with what you were originaly wearing
+														if(mouseCollided(slot1x,slot1y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+															
+															if(mousemanager.isLeftPressed() && pressDelay == 0) {
+																holdingSpot = "steelSword";
+																player.inventory[0] = playerWeapon;
+																playerWeapon = holdingSpot;
+																pressDelay = 15;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 2
+		if(player.inventory[1] == "leather helmet") {
+			g.drawImage(leatherHelm.guy, slot2x, slot2y, null);
+			
+			if(mouseCollided(slot2x,slot2y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					swapHelm = player.inventory[1];
+					player.inventory[1] = player.helmet;
+					player.helmet = swapHelm;
+					pressDelay = 15;
+				}
+			}
+		}
+		else {
+			if(player.inventory[1] == "mage hood") {
+				g.drawImage(hoodHelm.guy, slot2x, slot2y, null);
+				
+				if(mouseCollided(slot2x,slot2y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					
+					if(mousemanager.isLeftPressed() && pressDelay == 0) {
+						swapHelm = player.inventory[1];
+						player.inventory[1] = player.helmet;
+						player.helmet = swapHelm;
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				if(player.inventory[1] == "thief hood") {
+					g.drawImage(thiefHelm.guy, slot2x, slot2y, null);
+					
+					if(mouseCollided(slot2x,slot2y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						
+						if(mousemanager.isLeftPressed() && pressDelay == 0) {
+							swapHelm = player.inventory[1];
+							player.inventory[1] = player.helmet;
+							player.helmet = swapHelm;
+							pressDelay = 15;
+						}
+					}
+				}
+				else {
+					if(player.inventory[1] == "leather chest") {
+						g.drawImage(leatherChest_I.guy, slot2x, slot2y, null);
+						
+						if(mouseCollided(slot2x,slot2y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							
+							if(mousemanager.isLeftPressed() && pressDelay == 0) {
+								swapHelm = player.inventory[1];
+								player.inventory[1] = player.chest;
+								player.chest = swapHelm;
+								pressDelay = 15;
+							}
+						}
+					}
+					else {
+						if(player.inventory[1] == "thief robe") {
+							g.drawImage(thiefRobe_I.guy, slot2x, slot2y, null);
+							
+							if(mouseCollided(slot2x,slot2y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								
+								if(mousemanager.isLeftPressed() && pressDelay == 0) {
+									swapHelm = player.inventory[1];
+									player.inventory[1] = player.chest;
+									player.chest = swapHelm;
+									pressDelay = 15;
+								}
+							}
+						}
+						else {
+							if(player.inventory[1] == "mage robe") {
+								g.drawImage(mageRobe_I.guy, slot2x, slot2y, null);
+								
+								if(mouseCollided(slot2x,slot2y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									
+									if(mousemanager.isLeftPressed() && pressDelay == 0) {
+										swapHelm = player.inventory[1];
+										player.inventory[1] = player.chest;
+										player.chest = swapHelm;
+										pressDelay = 15;
+									}
+								}
+							}
+							else {
+								if(player.inventory[1] == "woodenSword") {
+									g.drawImage(woodenSword_I.guy, slot2x, slot2y, null);
+									
+									//equips the helmet and replaces it's slot with what you were originaly wearing
+									if(mouseCollided(slot2x,slot2y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											holdingSpot = "woodenSword";
+											player.inventory[1] = playerWeapon;
+											playerWeapon = holdingSpot;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[1] == "dagger") {
+										g.drawImage(dagger_I.guy, slot2x, slot2y, null);
+										
+										//equips the helmet and replaces it's slot with what you were originaly wearing
+										if(mouseCollided(slot2x,slot2y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												holdingSpot = "dagger";
+												player.inventory[1] = playerWeapon;
+												playerWeapon = holdingSpot;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[1] == "wand") {
+											g.drawImage(wand_I.guy, slot2x, slot2y, null);
+											
+											//equips the helmet and replaces it's slot with what you were originaly wearing
+											if(mouseCollided(slot2x,slot2y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													holdingSpot = "wand";
+													player.inventory[1] = playerWeapon;
+													playerWeapon = holdingSpot;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[1] == "shank") {
+												g.drawImage(shank_I.guy, slot2x, slot2y, null);
+												
+												//equips the helmet and replaces it's slot with what you were originaly wearing
+												if(mouseCollided(slot2x,slot2y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														holdingSpot = "shank";
+														player.inventory[1] = playerWeapon;
+														playerWeapon = holdingSpot;
+														pressDelay = 15;
+													}
+												}
+											}
+											else {
+												if(player.inventory[0] == "staff") {
+													g.drawImage(staff_I.guy, slot2x, slot2y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot2x,slot2y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "staff";
+															player.inventory[1] = playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+												else {
+													if(player.inventory[1] == "steelSword") {
+														g.drawImage(steelSword_I.guy, slot2x, slot2y, null);
+														
+														//equips the helmet and replaces it's slot with what you were originaly wearing
+														if(mouseCollided(slot2x,slot2y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+															
+															if(mousemanager.isLeftPressed() && pressDelay == 0) {
+																holdingSpot = "steelSword";
+																player.inventory[1] = playerWeapon;
+																playerWeapon = holdingSpot;
+																pressDelay = 15;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 3
+		if(player.inventory[2] == "leather helmet") {
+			g.drawImage(leatherHelm.guy, slot3x, slot3y, null);
+			
+			if(mouseCollided(slot3x,slot3y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					swapHelm = player.inventory[2];
+					player.inventory[2] = player.helmet;
+					player.helmet = swapHelm;
+					pressDelay = 15;
+				}
+			}
+		}
+		else {
+			if(player.inventory[2] == "mage hood") {
+				g.drawImage(hoodHelm.guy, slot3x, slot3y, null);
+				
+				if(mouseCollided(slot3x,slot3y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					
+					if(mousemanager.isLeftPressed() && pressDelay == 0) {
+						swapHelm = player.inventory[2];
+						player.inventory[2] = player.helmet;
+						player.helmet = swapHelm;
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				if(player.inventory[2] == "thief hood") {
+					g.drawImage(thiefHelm.guy, slot3x, slot3y, null);
+					
+					if(mouseCollided(slot3x,slot3y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						
+						if(mousemanager.isLeftPressed() && pressDelay == 0) {
+							swapHelm = player.inventory[2];
+							player.inventory[2] = player.helmet;
+							player.helmet = swapHelm;
+							pressDelay = 15;
+						}
+					}
+				}
+				else {
+					if(player.inventory[2] == "leather chest") {
+						g.drawImage(leatherChest_I.guy, slot3x, slot3y, null);
+						
+						if(mouseCollided(slot3x,slot3y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							
+							if(mousemanager.isLeftPressed() && pressDelay == 0) {
+								swapHelm = player.inventory[2];
+								player.inventory[2] = player.chest;
+								player.chest = swapHelm;
+								pressDelay = 15;
+							}
+						}
+					}
+					else {
+						if(player.inventory[2] == "thief robe") {
+							g.drawImage(thiefRobe_I.guy, slot3x, slot3y, null);
+							
+							if(mouseCollided(slot3x,slot3y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								
+								if(mousemanager.isLeftPressed() && pressDelay == 0) {
+									swapHelm = player.inventory[2];
+									player.inventory[2] = player.chest;
+									player.chest = swapHelm;
+									pressDelay = 15;
+								}
+							}
+						}
+						else {
+							if(player.inventory[2] == "mage robe") {
+								g.drawImage(mageRobe_I.guy, slot3x, slot3y, null);
+								
+								if(mouseCollided(slot3x,slot3y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									
+									if(mousemanager.isLeftPressed() && pressDelay == 0) {
+										swapHelm = player.inventory[2];
+										player.inventory[2] = player.chest;
+										player.chest = swapHelm;
+										pressDelay = 15;
+									}
+								}
+							}
+							else {
+								if(player.inventory[2] == "dagger") {
+									g.drawImage(dagger_I.guy, slot3x, slot3y, null);
+									
+									//equips the helmet and replaces it's slot with what you were originaly wearing
+									if(mouseCollided(slot3x,slot3y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											holdingSpot = "dagger";
+											player.inventory[2] = playerWeapon;
+											playerWeapon = holdingSpot;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[2] == "wand") {
+										g.drawImage(wand_I.guy, slot3x, slot3y, null);
+										
+										//equips the helmet and replaces it's slot with what you were originaly wearing
+										if(mouseCollided(slot3x,slot3y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												holdingSpot = "wand";
+												player.inventory[2] = playerWeapon;
+												playerWeapon = holdingSpot;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[2] == "shank") {
+											g.drawImage(shank_I.guy, slot3x, slot3y, null);
+											
+											//equips the helmet and replaces it's slot with what you were originaly wearing
+											if(mouseCollided(slot3x,slot3y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													holdingSpot = "shank";
+													player.inventory[2] = playerWeapon;
+													playerWeapon = holdingSpot;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[2] == "staff") {
+												g.drawImage(staff_I.guy, slot3x, slot3y, null);
+												
+												//equips the helmet and replaces it's slot with what you were originaly wearing
+												if(mouseCollided(slot3x,slot3y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														holdingSpot = "staff";
+														player.inventory[2] = playerWeapon;
+														playerWeapon = holdingSpot;
+														pressDelay = 15;
+													}
+												}
+											}
+											else {
+												if(player.inventory[2] == "steelSword") {
+													g.drawImage(steelSword_I.guy, slot3x, slot3y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot3x,slot3y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "steelSword";
+															player.inventory[2] = playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+												else {
+													if(player.inventory[2] == "woodenSword") {
+														g.drawImage(woodenSword_I.guy, slot3x, slot3y, null);
+														
+														//equips the helmet and replaces it's slot with what you were originaly wearing
+														if(mouseCollided(slot3x,slot3y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+															
+															if(mousemanager.isLeftPressed() && pressDelay == 0) {
+																holdingSpot = "woodenSword";
+																player.inventory[2] = playerWeapon;
+																playerWeapon = holdingSpot;
+																pressDelay = 15;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 4
+		if(player.inventory[3] == "leather helmet") {
+			g.drawImage(leatherHelm.guy, slot4x, slot4y, null);
+			
+			if(mouseCollided(slot4x,slot4y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					swapHelm = player.inventory[3];
+					player.inventory[3] = player.helmet;
+					player.helmet = swapHelm;
+					pressDelay = 15;
+				}
+			}
+		}
+		else {
+			if(player.inventory[3] == "mage hood") {
+				g.drawImage(hoodHelm.guy, slot4x, slot4y, null);
+				
+				if(mouseCollided(slot4x,slot4y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					
+					if(mousemanager.isLeftPressed() && pressDelay == 0) {
+						swapHelm = player.inventory[3];
+						player.inventory[3] = player.helmet;
+						player.helmet = swapHelm;
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				if(player.inventory[3] == "thief hood") {
+					g.drawImage(thiefHelm.guy, slot4x, slot4y, null);
+					
+					if(mouseCollided(slot4x,slot4y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						
+						if(mousemanager.isLeftPressed() && pressDelay == 0) {
+							swapHelm = player.inventory[3];
+							player.inventory[3] = player.helmet;
+							player.helmet = swapHelm;
+							pressDelay = 15;
+						}
+					}
+				}
+				else {
+					if(player.inventory[3] == "leather chest") {
+						g.drawImage(leatherChest_I.guy, slot4x, slot4y, null);
+						
+						if(mouseCollided(slot4x,slot4y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							
+							if(mousemanager.isLeftPressed() && pressDelay == 0) {
+								swapHelm = player.inventory[3];
+								player.inventory[3] = player.chest;
+								player.chest = swapHelm;
+								pressDelay = 15;
+							}
+						}
+					}
+					else {
+						if(player.inventory[3] == "thief robe") {
+							g.drawImage(thiefRobe_I.guy, slot4x, slot4y, null);
+							
+							if(mouseCollided(slot4x,slot4y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								
+								if(mousemanager.isLeftPressed() && pressDelay == 0) {
+									swapHelm = player.inventory[3];
+									player.inventory[3] = player.chest;
+									player.chest = swapHelm;
+									pressDelay = 15;
+								}
+							}
+						}
+						else {
+							if(player.inventory[3] == "mage robe") {
+								g.drawImage(mageRobe_I.guy, slot4x, slot4y, null);
+								
+								if(mouseCollided(slot4x,slot4y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									
+									if(mousemanager.isLeftPressed() && pressDelay == 0) {
+										swapHelm = player.inventory[3];
+										player.inventory[3] = player.chest;
+										player.chest = swapHelm;
+										pressDelay = 15;
+									}
+								}
+							}
+							else {
+								if(player.inventory[3] == "dagger") {
+									g.drawImage(dagger_I.guy, slot4x, slot4y, null);
+									
+									//equips the helmet and replaces it's slot with what you were originaly wearing
+									if(mouseCollided(slot4x,slot4y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											holdingSpot = "dagger";
+											player.inventory[3] = playerWeapon;
+											playerWeapon = holdingSpot;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[3] == "wand") {
+										g.drawImage(wand_I.guy, slot4x, slot4y, null);
+										
+										//equips the helmet and replaces it's slot with what you were originaly wearing
+										if(mouseCollided(slot4x,slot4y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												holdingSpot = "wand";
+												player.inventory[3] = playerWeapon;
+												playerWeapon = holdingSpot;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[3] == "shank") {
+											g.drawImage(shank_I.guy, slot4x, slot4y, null);
+											
+											//equips the helmet and replaces it's slot with what you were originaly wearing
+											if(mouseCollided(slot4x,slot4y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													holdingSpot = "shank";
+													player.inventory[3] = playerWeapon;
+													playerWeapon = holdingSpot;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[3] == "staff") {
+												g.drawImage(staff_I.guy, slot4x, slot4y, null);
+												
+												//equips the helmet and replaces it's slot with what you were originaly wearing
+												if(mouseCollided(slot4x,slot4y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														holdingSpot = "staff";
+														player.inventory[3] = playerWeapon;
+														playerWeapon = holdingSpot;
+														pressDelay = 15;
+													}
+												}
+											}
+											else {
+												if(player.inventory[3] == "steelSword") {
+													g.drawImage(steelSword_I.guy, slot4x, slot4y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot4x,slot4y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "steelSword";
+															player.inventory[3] = playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+												else {
+													if(player.inventory[3] == "woodenSword") {
+														g.drawImage(woodenSword_I.guy, slot4x, slot4y, null);
+														
+														//equips the helmet and replaces it's slot with what you were originaly wearing
+														if(mouseCollided(slot4x,slot4y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+															
+															if(mousemanager.isLeftPressed() && pressDelay == 0) {
+																holdingSpot = "woodenSword";
+																player.inventory[3] = playerWeapon;
+																playerWeapon = holdingSpot;
+																pressDelay = 15;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 5
+		if(player.inventory[4] == "leather helmet") {
+			g.drawImage(leatherHelm.guy, slot5x, slot5y, null);
+			
+			if(mouseCollided(slot5x,slot5y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					swapHelm = player.inventory[4];
+					player.inventory[4] = player.helmet;
+					player.helmet = swapHelm;
+					pressDelay = 15;
+				}
+			}
+		}
+		else {
+			if(player.inventory[4] == "mage hood") {
+				g.drawImage(hoodHelm.guy, slot5x, slot5y, null);
+				
+				if(mouseCollided(slot5x,slot5y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					
+					if(mousemanager.isLeftPressed() && pressDelay == 0) {
+						swapHelm = player.inventory[4];
+						player.inventory[4] = player.helmet;
+						player.helmet = swapHelm;
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				if(player.inventory[4] == "thief hood") {
+					g.drawImage(thiefHelm.guy, slot5x, slot5y, null);
+					
+					if(mouseCollided(slot5x,slot5y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						
+						if(mousemanager.isLeftPressed() && pressDelay == 0) {
+							swapHelm = player.inventory[4];
+							player.inventory[4] = player.helmet;
+							player.helmet = swapHelm;
+							pressDelay = 15;
+						}
+					}
+				}
+				else {
+					if(player.inventory[4] == "leather chest") {
+						g.drawImage(leatherChest_I.guy, slot5x, slot5y, null);
+						
+						if(mouseCollided(slot5x,slot5y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							
+							if(mousemanager.isLeftPressed() && pressDelay == 0) {
+								swapHelm = player.inventory[4];
+								player.inventory[4] = player.chest;
+								player.chest = swapHelm;
+								pressDelay = 15;
+							}
+						}
+					}
+					else {
+						if(player.inventory[4] == "thief robe") {
+							g.drawImage(thiefRobe_I.guy, slot5x, slot5y, null);
+							
+							if(mouseCollided(slot5x,slot5y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								
+								if(mousemanager.isLeftPressed() && pressDelay == 0) {
+									swapHelm = player.inventory[4];
+									player.inventory[4] = player.chest;
+									player.chest = swapHelm;
+									pressDelay = 15;
+								}
+							}
+						}
+						else {
+							if(player.inventory[4] == "mage robe") {
+								g.drawImage(mageRobe_I.guy, slot5x, slot5y, null);
+								
+								if(mouseCollided(slot5x,slot5y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									
+									if(mousemanager.isLeftPressed() && pressDelay == 0) {
+										swapHelm = player.inventory[4];
+										player.inventory[4] = player.chest;
+										player.chest = swapHelm;
+										pressDelay = 15;
+									}
+								}
+							}
+							else {
+								if(player.inventory[4] == "dagger") {
+									g.drawImage(dagger_I.guy, slot5x, slot5y, null);
+									
+									//equips the helmet and replaces it's slot with what you were originaly wearing
+									if(mouseCollided(slot5x,slot5y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											holdingSpot = "dagger";
+											player.inventory[4] = playerWeapon;
+											playerWeapon = holdingSpot;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[4] == "wand") {
+										g.drawImage(wand_I.guy, slot5x, slot5y, null);
+										
+										//equips the helmet and replaces it's slot with what you were originaly wearing
+										if(mouseCollided(slot5x,slot5y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												holdingSpot = "wand";
+												player.inventory[4] = playerWeapon;
+												playerWeapon = holdingSpot;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[4] == "shank") {
+											g.drawImage(shank_I.guy, slot5x, slot5y, null);
+											
+											//equips the helmet and replaces it's slot with what you were originaly wearing
+											if(mouseCollided(slot5x,slot5y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													holdingSpot = "shank";
+													player.inventory[4] = playerWeapon;
+													playerWeapon = holdingSpot;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[4] == "staff") {
+												g.drawImage(staff_I.guy, slot5x, slot5y, null);
+												
+												//equips the helmet and replaces it's slot with what you were originaly wearing
+												if(mouseCollided(slot5x,slot5y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														holdingSpot = "staff";
+														player.inventory[4] = playerWeapon;
+														playerWeapon = holdingSpot;
+														pressDelay = 15;
+													}
+												}
+											}
+											else {
+												if(player.inventory[4] == "steelSword") {
+													g.drawImage(steelSword_I.guy, slot5x, slot5y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot5x,slot5y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "steelSword";
+															player.inventory[4] = "" + playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+												else {
+													if(player.inventory[4] == "woodenSword") {
+														g.drawImage(woodenSword_I.guy, slot5x, slot5y, null);
+														
+														//equips the helmet and replaces it's slot with what you were originaly wearing
+														if(mouseCollided(slot5x,slot5y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+															
+															if(mousemanager.isLeftPressed() && pressDelay == 0) {
+																holdingSpot = "woodenSword";
+																player.inventory[4] = playerWeapon;
+																playerWeapon = holdingSpot;
+																pressDelay = 15;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 6
+		if(player.inventory[5] == "leather helmet") {
+			g.drawImage(leatherHelm.guy, slot6x, slot6y, null);
+			
+			if(mouseCollided(slot6x,slot6y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					swapHelm = player.inventory[5];
+					player.inventory[5] = player.helmet;
+					player.helmet = swapHelm;
+					pressDelay = 15;
+				}
+			}
+		}
+		else {
+			if(player.inventory[5] == "mage hood") {
+				g.drawImage(hoodHelm.guy, slot6x, slot6y, null);
+				
+				if(mouseCollided(slot6x,slot6y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					
+					if(mousemanager.isLeftPressed() && pressDelay == 0) {
+						swapHelm = player.inventory[5];
+						player.inventory[5] = player.helmet;
+						player.helmet = swapHelm;
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				if(player.inventory[5] == "thief hood") {
+					g.drawImage(thiefHelm.guy, slot6x, slot6y, null);
+					
+					if(mouseCollided(slot6x,slot6y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						
+						if(mousemanager.isLeftPressed() && pressDelay == 0) {
+							swapHelm = player.inventory[5];
+							player.inventory[5] = player.helmet;
+							player.helmet = swapHelm;
+							pressDelay = 15;
+						}
+					}
+				}
+				else {
+					if(player.inventory[5] == "leather chest") {
+						g.drawImage(leatherChest_I.guy, slot6x, slot6y, null);
+						
+						if(mouseCollided(slot6x,slot6y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							
+							if(mousemanager.isLeftPressed() && pressDelay == 0) {
+								swapHelm = player.inventory[5];
+								player.inventory[5] = player.chest;
+								player.chest = swapHelm;
+								pressDelay = 15;
+							}
+						}
+					}
+					else {
+						if(player.inventory[5] == "thief robe") {
+							g.drawImage(thiefRobe_I.guy, slot6x, slot6y, null);
+							
+							if(mouseCollided(slot6x,slot6y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								
+								if(mousemanager.isLeftPressed() && pressDelay == 0) {
+									swapHelm = player.inventory[5];
+									player.inventory[5] = player.chest;
+									player.chest = swapHelm;
+									pressDelay = 15;
+								}
+							}
+						}
+						else {
+							if(player.inventory[5] == "mage robe") {
+								g.drawImage(mageRobe_I.guy, slot6x, slot6y, null);
+								
+								if(mouseCollided(slot6x,slot6y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									
+									if(mousemanager.isLeftPressed() && pressDelay == 0) {
+										swapHelm = player.inventory[5];
+										player.inventory[5] = player.chest;
+										player.chest = swapHelm;
+										pressDelay = 15;
+									}
+								}
+							}
+							else {
+								if(player.inventory[5] == "dagger") {
+									g.drawImage(dagger_I.guy, slot6x, slot6y, null);
+									
+									//equips the helmet and replaces it's slot with what you were originaly wearing
+									if(mouseCollided(slot6x,slot6y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											holdingSpot = "dagger";
+											player.inventory[5] = playerWeapon;
+											playerWeapon = holdingSpot;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[5] == "wand") {
+										g.drawImage(wand_I.guy, slot6x, slot6y, null);
+										
+										//equips the helmet and replaces it's slot with what you were originaly wearing
+										if(mouseCollided(slot6x,slot6y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												holdingSpot = "wand";
+												player.inventory[5] = playerWeapon;
+												playerWeapon = holdingSpot;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[5] == "shank") {
+											g.drawImage(shank_I.guy, slot6x, slot6y, null);
+											
+											//equips the helmet and replaces it's slot with what you were originaly wearing
+											if(mouseCollided(slot6x,slot6y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													holdingSpot = "shank";
+													player.inventory[5] = playerWeapon;
+													playerWeapon = holdingSpot;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[5] == "staff") {
+												g.drawImage(staff_I.guy, slot6x, slot6y, null);
+												
+												//equips the helmet and replaces it's slot with what you were originaly wearing
+												if(mouseCollided(slot6x,slot6y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														holdingSpot = "staff";
+														player.inventory[5] = playerWeapon;
+														playerWeapon = holdingSpot;
+														pressDelay = 15;
+													}
+												}
+											}
+											else {
+												if(player.inventory[5] == "steelSword") {
+													g.drawImage(steelSword_I.guy, slot6x, slot6y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot6x,slot6y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "steelSword";
+															player.inventory[5] = playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+												else {
+													if(player.inventory[5] == "woodenSword") {
+														g.drawImage(woodenSword_I.guy, slot6x, slot6y, null);
+														
+														//equips the helmet and replaces it's slot with what you were originaly wearing
+														if(mouseCollided(slot6x,slot6y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+															
+															if(mousemanager.isLeftPressed() && pressDelay == 0) {
+																holdingSpot = "woodenSword";
+																player.inventory[5] = playerWeapon;
+																playerWeapon = holdingSpot;
+																pressDelay = 15;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 7
+		if(player.inventory[6] == "leather helmet") {
+			g.drawImage(leatherHelm.guy, slot7x, slot7y, null);
+			
+			if(mouseCollided(slot7x,slot7y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					swapHelm = player.inventory[6];
+					player.inventory[6] = player.helmet;
+					player.helmet = swapHelm;
+					pressDelay = 15;
+				}
+			}
+		}
+		else {
+			if(player.inventory[6] == "mage hood") {
+				g.drawImage(hoodHelm.guy, slot7x, slot7y, null);
+				
+				if(mouseCollided(slot7x,slot7y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					
+					if(mousemanager.isLeftPressed() && pressDelay == 0) {
+						swapHelm = player.inventory[6];
+						player.inventory[6] = player.helmet;
+						player.helmet = swapHelm;
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				if(player.inventory[6] == "thief hood") {
+					g.drawImage(thiefHelm.guy, slot7x, slot7y, null);
+					
+					if(mouseCollided(slot7x,slot7y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						
+						if(mousemanager.isLeftPressed() && pressDelay == 0) {
+							swapHelm = player.inventory[6];
+							player.inventory[6] = player.helmet;
+							player.helmet = swapHelm;
+							pressDelay = 15;
+						}
+					}
+				}
+				else {
+					if(player.inventory[6] == "leather chest") {
+						g.drawImage(leatherChest_I.guy, slot7x, slot7y, null);
+						
+						if(mouseCollided(slot7x,slot7y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							
+							if(mousemanager.isLeftPressed() && pressDelay == 0) {
+								swapHelm = player.inventory[6];
+								player.inventory[6] = player.chest;
+								player.chest = swapHelm;
+								pressDelay = 15;
+							}
+						}
+					}
+					else {
+						if(player.inventory[6] == "thief robe") {
+							g.drawImage(thiefRobe_I.guy, slot7x, slot7y, null);
+							
+							if(mouseCollided(slot7x,slot7y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								
+								if(mousemanager.isLeftPressed() && pressDelay == 0) {
+									swapHelm = player.inventory[6];
+									player.inventory[6] = player.chest;
+									player.chest = swapHelm;
+									pressDelay = 15;
+								}
+							}
+						}
+						else {
+							if(player.inventory[6] == "mage robe") {
+								g.drawImage(mageRobe_I.guy, slot7x, slot7y, null);
+								
+								if(mouseCollided(slot7x,slot7y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									
+									if(mousemanager.isLeftPressed() && pressDelay == 0) {
+										swapHelm = player.inventory[6];
+										player.inventory[6] = player.chest;
+										player.chest = swapHelm;
+										pressDelay = 15;
+									}
+								}
+							}
+							else {
+								if(player.inventory[6] == "dagger") {
+									g.drawImage(dagger_I.guy, slot7x, slot7y, null);
+									
+									//equips the helmet and replaces it's slot with what you were originaly wearing
+									if(mouseCollided(slot7x,slot7y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											holdingSpot = "dagger";
+											player.inventory[6] = playerWeapon;
+											playerWeapon = holdingSpot;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[6] == "wand") {
+										g.drawImage(wand_I.guy, slot7x, slot7y, null);
+										
+										//equips the helmet and replaces it's slot with what you were originaly wearing
+										if(mouseCollided(slot7x,slot7y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												holdingSpot = "wand";
+												player.inventory[6] = playerWeapon;
+												playerWeapon = holdingSpot;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[6] == "shank") {
+											g.drawImage(shank_I.guy, slot7x, slot7y, null);
+											
+											//equips the helmet and replaces it's slot with what you were originaly wearing
+											if(mouseCollided(slot7x,slot7y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													holdingSpot = "shank";
+													player.inventory[6] = playerWeapon;
+													playerWeapon = holdingSpot;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[6] == "staff") {
+												g.drawImage(staff_I.guy, slot7x, slot7y, null);
+												
+												//equips the helmet and replaces it's slot with what you were originaly wearing
+												if(mouseCollided(slot7x,slot7y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														holdingSpot = "staff";
+														player.inventory[6] = playerWeapon;
+														playerWeapon = holdingSpot;
+														pressDelay = 15;
+													}
+												}
+											}
+											else {
+												if(player.inventory[6] == "steelSword") {
+													g.drawImage(steelSword_I.guy, slot7x, slot7y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot7x,slot7y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "steelSword";
+															player.inventory[6] = playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+												else {
+													if(player.inventory[6] == "woodenSword") {
+														g.drawImage(woodenSword_I.guy, slot7x, slot7y, null);
+														
+														//equips the helmet and replaces it's slot with what you were originaly wearing
+														if(mouseCollided(slot7x,slot7y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+															
+															if(mousemanager.isLeftPressed() && pressDelay == 0) {
+																holdingSpot = "woodenSword";
+																player.inventory[6] = playerWeapon;
+																playerWeapon = holdingSpot;
+																pressDelay = 15;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 8
+		if(player.inventory[7] == "leather helmet") {
+			g.drawImage(leatherHelm.guy, slot8x, slot8y, null);
+			
+			if(mouseCollided(slot8x,slot8y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					swapHelm = player.inventory[7];
+					player.inventory[7] = player.helmet;
+					player.helmet = swapHelm;
+					pressDelay = 15;
+				}
+			}
+		}
+		else {
+			if(player.inventory[7] == "mage hood") {
+				g.drawImage(hoodHelm.guy, slot8x, slot8y, null);
+				
+				if(mouseCollided(slot8x,slot8y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					
+					if(mousemanager.isLeftPressed() && pressDelay == 0) {
+						swapHelm = player.inventory[7];
+						player.inventory[7] = player.helmet;
+						player.helmet = swapHelm;
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				if(player.inventory[7] == "thief hood") {
+					g.drawImage(thiefHelm.guy, slot8x, slot8y, null);
+					
+					if(mouseCollided(slot8x,slot8y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						
+						if(mousemanager.isLeftPressed() && pressDelay == 0) {
+							swapHelm = player.inventory[7];
+							player.inventory[7] = player.helmet;
+							player.helmet = swapHelm;
+							pressDelay = 15;
+						}
+					}
+				}
+				else {
+					if(player.inventory[7] == "leather chest") {
+						g.drawImage(leatherChest_I.guy, slot8x, slot8y, null);
+						
+						if(mouseCollided(slot8x,slot8y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							
+							if(mousemanager.isLeftPressed() && pressDelay == 0) {
+								swapHelm = player.inventory[7];
+								player.inventory[7] = player.chest;
+								player.chest = swapHelm;
+								pressDelay = 15;
+							}
+						}
+					}
+					else {
+						if(player.inventory[7] == "thief robe") {
+							g.drawImage(thiefRobe_I.guy, slot8x, slot8y, null);
+							
+							if(mouseCollided(slot8x,slot8y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								
+								if(mousemanager.isLeftPressed() && pressDelay == 0) {
+									swapHelm = player.inventory[7];
+									player.inventory[7] = player.chest;
+									player.chest = swapHelm;
+									pressDelay = 15;
+								}
+							}
+						}
+						else {
+							if(player.inventory[7] == "mage robe") {
+								g.drawImage(mageRobe_I.guy, slot8x, slot8y, null);
+								
+								if(mouseCollided(slot8x,slot8y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									
+									if(mousemanager.isLeftPressed() && pressDelay == 0) {
+										swapHelm = player.inventory[7];
+										player.inventory[7] = player.chest;
+										player.chest = swapHelm;
+										pressDelay = 15;
+									}
+								}
+							}
+							else {
+								if(player.inventory[7] == "dagger") {
+									g.drawImage(dagger_I.guy, slot8x, slot8y, null);
+									
+									//equips the helmet and replaces it's slot with what you were originaly wearing
+									if(mouseCollided(slot8x,slot8y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											holdingSpot = "dagger";
+											player.inventory[7] = playerWeapon;
+											playerWeapon = holdingSpot;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[7] == "wand") {
+										g.drawImage(wand_I.guy, slot8x, slot8y, null);
+										
+										//equips the helmet and replaces it's slot with what you were originaly wearing
+										if(mouseCollided(slot8x,slot8y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												holdingSpot = "wand";
+												player.inventory[7] = playerWeapon;
+												playerWeapon = holdingSpot;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[7] == "shank") {
+											g.drawImage(shank_I.guy, slot8x, slot8y, null);
+											
+											//equips the helmet and replaces it's slot with what you were originaly wearing
+											if(mouseCollided(slot8x,slot8y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													holdingSpot = "shank";
+													player.inventory[7] = playerWeapon;
+													playerWeapon = holdingSpot;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[7] == "staff") {
+												g.drawImage(staff_I.guy, slot8x, slot8y, null);
+												
+												//equips the helmet and replaces it's slot with what you were originaly wearing
+												if(mouseCollided(slot8x,slot8y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														holdingSpot = "staff";
+														player.inventory[7] = playerWeapon;
+														playerWeapon = holdingSpot;
+														pressDelay = 15;
+													}
+												}
+											}
+											else {
+												if(player.inventory[7] == "steelSword") {
+													g.drawImage(steelSword_I.guy, slot8x, slot8y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot8x,slot8y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "steelSword";
+															player.inventory[7] = playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+												if(player.inventory[7] == "woodenSword") {
+													g.drawImage(woodenSword_I.guy, slot8x, slot8y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot8x,slot8y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "woodenSword";
+															player.inventory[7] = playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 9
+		if(player.inventory[8] == "leather helmet") {
+			g.drawImage(leatherHelm.guy, slot9x, slot9y, null);
+			
+			if(mouseCollided(slot9x,slot9y,32,32)) {
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					swapHelm = player.inventory[8];
+					player.inventory[8] = player.helmet;
+					player.helmet = swapHelm;
+					pressDelay = 15;
+				}
+			}
+		}
+		else {
+			if(player.inventory[8] == "mage hood") {
+				g.drawImage(hoodHelm.guy, slot9x, slot9y, null);
+				
+				if(mouseCollided(slot9x,slot9y,32,32)) {
+					if(mousemanager.isLeftPressed() && pressDelay == 0) {
+						swapHelm = player.inventory[8];
+						player.inventory[8] = player.helmet;
+						player.helmet = swapHelm;
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				if(player.inventory[8] == "thief hood") {
+					g.drawImage(thiefHelm.guy, slot9x, slot9y, null);
+					
+					if(mouseCollided(slot9x,slot9y,32,32)) {
+						if(mousemanager.isLeftPressed() && pressDelay == 0) {
+							swapHelm = player.inventory[8];
+							player.inventory[8] = player.helmet;
+							player.helmet = swapHelm;
+							pressDelay = 15;
+						}
+					}
+				}
+				else {
+					if(player.inventory[8] == "leather chest") {
+						g.drawImage(leatherChest_I.guy, slot9x, slot9y, null);
+						
+						if(mouseCollided(slot9x,slot9y,32,32)) {
+							if(mousemanager.isLeftPressed() && pressDelay == 0) {
+								swapHelm = player.inventory[8];
+								player.inventory[8] = player.chest;
+								player.chest = swapHelm;
+								pressDelay = 15;
+							}
+						}
+					}
+					else {
+						if(player.inventory[8] == "thief robe") {
+							g.drawImage(thiefRobe_I.guy, slot9x, slot9y, null);
+							
+							if(mouseCollided(slot9x,slot9y,32,32)) {
+								if(mousemanager.isLeftPressed() && pressDelay == 0) {
+									swapHelm = player.inventory[8];
+									player.inventory[8] = player.chest;
+									player.chest = swapHelm;
+									pressDelay = 15;
+								}
+							}
+						}
+						else {
+							if(player.inventory[8] == "mage robe") {
+								g.drawImage(mageRobe_I.guy, slot9x, slot9y, null);
+								
+								if(mouseCollided(slot9x,slot9y,32,32)) {
+									if(mousemanager.isLeftPressed() && pressDelay == 0) {
+										swapHelm = player.inventory[8];
+										player.inventory[8] = player.chest;
+										player.chest = swapHelm;
+										pressDelay = 15;
+									}
+								}
+							}
+							else {
+								if(player.inventory[8] == "dagger") {
+									g.drawImage(dagger_I.guy, slot9x, slot9y, null);
+									
+									//equips the helmet and replaces it's slot with what you were originaly wearing
+									if(mouseCollided(slot9x,slot9y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											holdingSpot = "dagger";
+											player.inventory[8] = playerWeapon;
+											playerWeapon = holdingSpot;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[8] == "wand") {
+										g.drawImage(wand_I.guy, slot9x, slot9y, null);
+										
+										//equips the helmet and replaces it's slot with what you were originaly wearing
+										if(mouseCollided(slot9x,slot9y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												holdingSpot = "wand";
+												player.inventory[8] = playerWeapon;
+												playerWeapon = holdingSpot;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[8] == "shank") {
+											g.drawImage(shank_I.guy, slot9x, slot9y, null);
+											
+											//equips the helmet and replaces it's slot with what you were originaly wearing
+											if(mouseCollided(slot9x,slot9y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													holdingSpot = "shank";
+													player.inventory[8] = playerWeapon;
+													playerWeapon = holdingSpot;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[8] == "staff") {
+												g.drawImage(staff_I.guy, slot9x, slot9y, null);
+												
+												//equips the helmet and replaces it's slot with what you were originaly wearing
+												if(mouseCollided(slot9x,slot9y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														holdingSpot = "staff";
+														player.inventory[8] = playerWeapon;
+														playerWeapon = holdingSpot;
+														pressDelay = 15;
+													}
+												}
+											}
+											else {
+												if(player.inventory[8] == "steelSword") {
+													g.drawImage(steelSword_I.guy, slot9x, slot9y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot9x,slot9y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "steelSword";
+															player.inventory[8] = playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+												if(player.inventory[8] == "woodenSword") {
+													g.drawImage(woodenSword_I.guy, slot9x, slot9y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot9x,slot9y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "woodenSword";
+															player.inventory[8] = playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 10
+		if(player.inventory[9] == "leather helmet") {
+			g.drawImage(leatherHelm.guy, slot10x, slot10y, null);
+			
+			if(mouseCollided(slot10x,slot10y,32,32)) {
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					swapHelm = player.inventory[9];
+					player.inventory[9] = player.helmet;
+					player.helmet = swapHelm;
+					pressDelay = 15;
+				}
+			}
+		}
+		else {
+			if(player.inventory[9] == "mage hood") {
+				g.drawImage(hoodHelm.guy, slot10x, slot10y, null);
+				
+				if(mouseCollided(slot10x,slot10y,32,32)) {
+					if(mousemanager.isLeftPressed() && pressDelay == 0) {
+						swapHelm = player.inventory[9];
+						player.inventory[9] = player.helmet;
+						player.helmet = swapHelm;
+						pressDelay = 15;
+					}
+				}
+			}
+			else {
+				if(player.inventory[9] == "thief hood") {
+					g.drawImage(thiefHelm.guy, slot10x, slot10y, null);
+					
+					if(mouseCollided(slot10x,slot10y,32,32)) {
+						if(mousemanager.isLeftPressed() && pressDelay == 0) {
+							swapHelm = player.inventory[9];
+							player.inventory[9] = player.helmet;
+							player.helmet = swapHelm;
+							pressDelay = 15;
+						}
+					}
+				}
+				else {
+					if(player.inventory[9] == "leather chest") {
+						g.drawImage(leatherChest_I.guy, slot10x, slot10y, null);
+						
+						if(mouseCollided(slot10x,slot10y,32,32)) {
+							if(mousemanager.isLeftPressed() && pressDelay == 0) {
+								swapHelm = player.inventory[9];
+								player.inventory[9] = player.chest;
+								player.chest = swapHelm;
+								pressDelay = 15;
+							}
+						}
+					}
+					else {
+						if(player.inventory[9] == "thief robe") {
+							g.drawImage(thiefRobe_I.guy, slot10x, slot10y, null);
+							
+							if(mouseCollided(slot10x,slot10y,32,32)) {
+								if(mousemanager.isLeftPressed() && pressDelay == 0) {
+									swapHelm = player.inventory[9];
+									player.inventory[9] = player.chest;
+									player.chest = swapHelm;
+									pressDelay = 15;
+								}
+							}
+						}
+						else {
+							if(player.inventory[9] == "mage robe") {
+								g.drawImage(mageRobe_I.guy, slot10x, slot10y, null);
+								
+								if(mouseCollided(slot10x,slot10y,32,32)) {
+									if(mousemanager.isLeftPressed() && pressDelay == 0) {
+										swapHelm = player.inventory[9];
+										player.inventory[9] = player.chest;
+										player.chest = swapHelm;
+										pressDelay = 15;
+									}
+								}
+							}
+							else {
+								if(player.inventory[9] == "dagger") {
+									g.drawImage(dagger_I.guy, slot10x, slot10y, null);
+									
+									//equips the helmet and replaces it's slot with what you were originaly wearing
+									if(mouseCollided(slot10x,slot10y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										
+										if(mousemanager.isLeftPressed() && pressDelay == 0) {
+											holdingSpot = "dagger";
+											player.inventory[9] = playerWeapon;
+											playerWeapon = holdingSpot;
+											pressDelay = 15;
+										}
+									}
+								}
+								else {
+									if(player.inventory[9] == "wand") {
+										g.drawImage(wand_I.guy, slot10x, slot10y, null);
+										
+										//equips the helmet and replaces it's slot with what you were originaly wearing
+										if(mouseCollided(slot10x,slot10y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											
+											if(mousemanager.isLeftPressed() && pressDelay == 0) {
+												holdingSpot = "wand";
+												player.inventory[9] = playerWeapon;
+												playerWeapon = holdingSpot;
+												pressDelay = 15;
+											}
+										}
+									}
+									else {
+										if(player.inventory[9] == "shank") {
+											g.drawImage(shank_I.guy, slot10x, slot10y, null);
+											
+											//equips the helmet and replaces it's slot with what you were originaly wearing
+											if(mouseCollided(slot10x,slot10y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												
+												if(mousemanager.isLeftPressed() && pressDelay == 0) {
+													holdingSpot = "shank";
+													player.inventory[9] = playerWeapon;
+													playerWeapon = holdingSpot;
+													pressDelay = 15;
+												}
+											}
+										}
+										else {
+											if(player.inventory[9] == "staff") {
+												g.drawImage(staff_I.guy, slot10x, slot10y, null);
+												
+												//equips the helmet and replaces it's slot with what you were originaly wearing
+												if(mouseCollided(slot10x,slot10y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													
+													if(mousemanager.isLeftPressed() && pressDelay == 0) {
+														holdingSpot = "staff";
+														player.inventory[9] = playerWeapon;
+														playerWeapon = holdingSpot;
+														pressDelay = 15;
+													}
+												}
+											}
+											else {
+												if(player.inventory[9] == "steelSword") {
+													g.drawImage(steelSword_I.guy, slot10x, slot10y, null);
+													
+													//equips the helmet and replaces it's slot with what you were originaly wearing
+													if(mouseCollided(slot10x,slot10y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														
+														if(mousemanager.isLeftPressed() && pressDelay == 0) {
+															holdingSpot = "steelSword";
+															player.inventory[9] = playerWeapon;
+															playerWeapon = holdingSpot;
+															pressDelay = 15;
+														}
+													}
+												}
+												else {
+													if(player.inventory[9] == "woodenSword") {
+														g.drawImage(woodenSword_I.guy, slot10x, slot10y, null);
+														
+														//equips the helmet and replaces it's slot with what you were originaly wearing
+														if(mouseCollided(slot10x,slot10y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+															
+															if(mousemanager.isLeftPressed() && pressDelay == 0) {
+																holdingSpot = "woodenSword";
+																player.inventory[9] = playerWeapon;
+																playerWeapon = holdingSpot;
+																pressDelay = 15;
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if(player.inventory[0] == "leather helmet") {
+			//equips the helmet and replaces it's slot with what you were originaly wearing
+			if(mouseCollided(slot1x,slot1y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+			}
+		}
+		else {
+			if(player.inventory[0] == "mage hood") {
+				if(mouseCollided(slot1x,slot1y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				}
+			}
+			else {
+				if(player.inventory[0] == "thief hood") {
+					if(mouseCollided(slot1x,slot1y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					}
+				}
+				else {
+					if(player.inventory[0] == "leather chest") {			
+						if(mouseCollided(slot1x,slot1y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						}
+					}
+					else {
+						if(player.inventory[0] == "thief robe") {
+							if(mouseCollided(slot1x,slot1y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							}
+						}
+						else {
+							if(player.inventory[0] == "mage robe") {
+								if(mouseCollided(slot1x,slot1y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								}
+							}
+							else {
+								if(player.inventory[0] == "dagger") {
+									if(mouseCollided(slot1x,slot1y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									}
+								}
+								else {
+									if(player.inventory[0] == "wand") {
+										if(mouseCollided(slot1x,slot1y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										}
+									}
+									else {
+										if(player.inventory[0] == "shank") {
+											if(mouseCollided(slot1x,slot1y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											}
+										}
+										else {
+											if(player.inventory[0] == "staff") {
+												if(mouseCollided(slot1x,slot1y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												}
+											}
+											else {
+												if(player.inventory[0] == "steelSword") {
+													if(mouseCollided(slot1x,slot1y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													}
+												}
+												else {
+													if(player.inventory[0] == "woodenSword") {
+														if(mouseCollided(slot1x,slot1y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[0], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 2
+		if(player.inventory[1] == "leather helmet") {
+			if(mouseCollided(slot2x,slot2y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+			}
+		}
+		else {
+			if(player.inventory[1] == "mage hood") {
+				if(mouseCollided(slot2x,slot2y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				}
+			}
+			else {
+				if(player.inventory[1] == "thief hood") {
+					if(mouseCollided(slot2x,slot2y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					}
+				}
+				else {
+					if(player.inventory[1] == "leather chest") {
+						if(mouseCollided(slot2x,slot2y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						}
+					}
+					else {
+						if(player.inventory[1] == "thief robe") {
+							if(mouseCollided(slot2x,slot2y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							}
+						}
+						else {
+							if(player.inventory[1] == "mage robe") {
+								if(mouseCollided(slot2x,slot2y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								}
+							}
+							else {
+								if(player.inventory[1] == "dagger") {
+									if(mouseCollided(slot2x,slot2y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									}
+								}
+								else {
+									if(player.inventory[1] == "wand") {
+										if(mouseCollided(slot2x,slot2y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										}
+									}
+									else {
+										if(player.inventory[1] == "shank") {
+											if(mouseCollided(slot2x,slot2y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											}
+										}
+										else {
+											if(player.inventory[1] == "staff") {
+												if(mouseCollided(slot2x,slot2y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												}
+											}
+											else {
+												if(player.inventory[1] == "steelSword") {
+													if(mouseCollided(slot2x,slot2y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													}
+												}
+												else {
+													if(player.inventory[1] == "woodenSword") {
+														if(mouseCollided(slot2x,slot2y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[1], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 3
+		if(player.inventory[2] == "leather helmet") {
+			if(mouseCollided(slot3x,slot3y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+			}
+		}
+		else {
+			if(player.inventory[2] == "mage hood") {
+				if(mouseCollided(slot3x,slot3y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				}
+			}
+			else {
+				if(player.inventory[2] == "thief hood") {
+					if(mouseCollided(slot3x,slot3y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					}
+				}
+				else {
+					if(player.inventory[2] == "leather chest") {
+						if(mouseCollided(slot3x,slot3y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						}
+					}
+					else {
+						if(player.inventory[2] == "thief robe") {
+							if(mouseCollided(slot3x,slot3y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							}
+						}
+						else {
+							if(player.inventory[2] == "mage robe") {
+								if(mouseCollided(slot3x,slot3y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								}
+							}
+							else {
+								if(player.inventory[3] == "dagger") {
+									if(mouseCollided(slot2x,slot2y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									}
+								}
+								else {
+									if(player.inventory[2] == "wand") {
+										if(mouseCollided(slot3x,slot3y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										}
+									}
+									else {
+										if(player.inventory[2] == "shank") {
+											if(mouseCollided(slot3x,slot3y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											}
+										}
+										else {
+											if(player.inventory[2] == "staff") {
+												if(mouseCollided(slot3x,slot3y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												}
+											}
+											else {
+												if(player.inventory[2] == "steelSword") {
+													if(mouseCollided(slot3x,slot3y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													}
+												}
+												else {
+													if(player.inventory[2] == "woodenSword") {
+														if(mouseCollided(slot3x,slot3y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[2], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 4
+		if(player.inventory[3] == "leather helmet") {
+			if(mouseCollided(slot4x,slot4y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+			}
+		}
+		else {
+			if(player.inventory[3] == "mage hood") {
+				if(mouseCollided(slot4x,slot4y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				}
+			}
+			else {
+				if(player.inventory[3] == "thief hood") {
+					if(mouseCollided(slot4x,slot4y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					}
+				}
+				else {
+					if(player.inventory[3] == "leather chest") {
+						if(mouseCollided(slot4x,slot4y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						}
+					}
+					else {
+						if(player.inventory[3] == "thief robe") {
+							if(mouseCollided(slot4x,slot4y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							}
+						}
+						else {
+							if(player.inventory[3] == "mage robe") {
+								if(mouseCollided(slot4x,slot4y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								}
+							}
+							else {
+								if(player.inventory[3] == "dagger") {
+									if(mouseCollided(slot4x,slot4y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									}
+								}
+								else {
+									if(player.inventory[3] == "wand") {
+										if(mouseCollided(slot4x,slot4y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										}
+									}
+									else {
+										if(player.inventory[3] == "shank") {
+											if(mouseCollided(slot4x,slot4y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											}
+										}
+										else {
+											if(player.inventory[3] == "staff") {
+												if(mouseCollided(slot4x,slot4y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												}
+											}
+											else {
+												if(player.inventory[3] == "steelSword") {
+													if(mouseCollided(slot4x,slot4y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													}
+												}
+												else {
+													if(player.inventory[3] == "woodenSword") {
+														if(mouseCollided(slot4x,slot4y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[3], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 5
+		if(player.inventory[4] == "leather helmet") {
+			if(mouseCollided(slot5x,slot5y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+			}
+		}
+		else {
+			if(player.inventory[4] == "mage hood") {
+				if(mouseCollided(slot5x,slot5y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				}
+			}
+			else {
+				if(player.inventory[4] == "thief hood") {
+					if(mouseCollided(slot5x,slot5y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					}
+				}
+				else {
+					if(player.inventory[4] == "leather chest") {
+						if(mouseCollided(slot5x,slot5y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						}
+					}
+					else {
+						if(player.inventory[4] == "thief robe") {
+							if(mouseCollided(slot5x,slot5y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							}
+						}
+						else {
+							if(player.inventory[4] == "mage robe") {
+								if(mouseCollided(slot5x,slot5y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								}
+							}
+							else {
+								if(player.inventory[4] == "dagger") {
+									if(mouseCollided(slot5x,slot5y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									}
+								}
+								else {
+									if(player.inventory[4] == "wand") {
+										if(mouseCollided(slot5x,slot5y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										}
+									}
+									else {
+										if(player.inventory[4] == "shank") {
+											if(mouseCollided(slot5x,slot5y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											}
+										}
+										else {
+											if(player.inventory[4] == "staff") {
+												if(mouseCollided(slot5x,slot5y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												}
+											}
+											else {
+												if(player.inventory[4] == "steelSword") {
+													if(mouseCollided(slot5x,slot5y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													}
+												}
+												else {
+													if(player.inventory[4] == "woodenSword") {
+														if(mouseCollided(slot5x,slot5y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[4], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 6
+		if(player.inventory[5] == "leather helmet") {
+			if(mouseCollided(slot6x,slot6y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+			}
+		}
+		else {
+			if(player.inventory[5] == "mage hood") {
+				if(mouseCollided(slot6x,slot6y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				}
+			}
+			else {
+				if(player.inventory[5] == "thief hood") {
+					if(mouseCollided(slot6x,slot6y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					}
+				}
+				else {
+					if(player.inventory[5] == "leather chest") {
+						if(mouseCollided(slot6x,slot6y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						}
+					}
+					else {
+						if(player.inventory[5] == "thief robe") {
+							if(mouseCollided(slot6x,slot6y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							}
+						}
+						else {
+							if(player.inventory[5] == "mage robe") {
+								if(mouseCollided(slot6x,slot6y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								}
+							}
+							else {
+								if(player.inventory[5] == "dagger") {
+									if(mouseCollided(slot6x,slot6y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									}
+								}
+								else {
+									if(player.inventory[5] == "wand") {
+										if(mouseCollided(slot6x,slot6y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										}
+									}
+									else {
+										if(player.inventory[5] == "shank") {
+											if(mouseCollided(slot6x,slot6y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											}
+										}
+										else {
+											if(player.inventory[5] == "staff") {
+												if(mouseCollided(slot6x,slot6y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												}
+											}
+											else {
+												if(player.inventory[5] == "steelSword") {
+													if(mouseCollided(slot6x,slot6y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													}
+												}
+												else {
+													if(player.inventory[5] == "woodenSword") {
+														if(mouseCollided(slot6x,slot6y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[5], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 7
+		if(player.inventory[6] == "leather helmet") {
+			if(mouseCollided(slot7x,slot7y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+			}
+		}
+		else {
+			if(player.inventory[6] == "mage hood") {
+				if(mouseCollided(slot7x,slot7y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				}
+			}
+			else {
+				if(player.inventory[6] == "thief hood") {
+					if(mouseCollided(slot7x,slot7y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					}
+				}
+				else {
+					if(player.inventory[6] == "leather chest") {
+						if(mouseCollided(slot7x,slot7y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						}
+					}
+					else {
+						if(player.inventory[6] == "thief robe") {
+							if(mouseCollided(slot7x,slot7y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							}
+						}
+						else {
+							if(player.inventory[6] == "mage robe") {
+								if(mouseCollided(slot7x,slot7y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								}
+							}
+							else {
+								if(player.inventory[6] == "dagger") {
+									if(mouseCollided(slot7x,slot7y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									}
+								}
+								else {
+									if(player.inventory[6] == "wand") {
+										if(mouseCollided(slot7x,slot7y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										}
+									}
+									else {
+										if(player.inventory[6] == "shank") {
+											if(mouseCollided(slot7x,slot7y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											}
+										}
+										else {
+											if(player.inventory[6] == "staff") {
+												if(mouseCollided(slot7x,slot7y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												}
+											}
+											else {
+												if(player.inventory[6] == "steelSword") {
+													if(mouseCollided(slot7x,slot7y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													}
+												}
+												else {
+													if(player.inventory[6] == "woodenSword") {
+														if(mouseCollided(slot7x,slot7y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[6], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 8
+		if(player.inventory[7] == "leather helmet") {
+			if(mouseCollided(slot8x,slot8y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+			}
+		}
+		else {
+			if(player.inventory[7] == "mage hood") {
+				if(mouseCollided(slot8x,slot8y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				}
+			}
+			else {
+				if(player.inventory[7] == "thief hood") {
+					if(mouseCollided(slot8x,slot8y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					}
+				}
+				else {
+					if(player.inventory[7] == "leather chest") {
+						if(mouseCollided(slot8x,slot8y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						}
+					}
+					else {
+						if(player.inventory[7] == "thief robe") {
+							if(mouseCollided(slot8x,slot8y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							}
+						}
+						else {
+							if(player.inventory[7] == "mage robe") {
+								if(mouseCollided(slot8x,slot8y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								}
+							}
+							else {
+								if(player.inventory[7] == "dagger") {
+									if(mouseCollided(slot8x,slot8y,32,32)) {
+										g.setFont(new Font("Times New Roman",Font.BOLD,30));
+										
+										g.setColor(Color.gray.darker());
+										g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+										
+										g.setColor(Color.black);
+										g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+										
+										g.setFont(new Font("Times New Roman",Font.BOLD,16));
+										g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+									}
+								}
+								else {
+									if(player.inventory[7] == "wand") {
+										if(mouseCollided(slot8x,slot8y,32,32)) {
+											g.setFont(new Font("Times New Roman",Font.BOLD,30));
+											
+											g.setColor(Color.gray.darker());
+											g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+											
+											g.setColor(Color.black);
+											g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+											
+											g.setFont(new Font("Times New Roman",Font.BOLD,16));
+											g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+										}
+									}
+									else {
+										if(player.inventory[7] == "shank") {
+											if(mouseCollided(slot8x,slot8y,32,32)) {
+												g.setFont(new Font("Times New Roman",Font.BOLD,30));
+												
+												g.setColor(Color.gray.darker());
+												g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+												
+												g.setColor(Color.black);
+												g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+												
+												g.setFont(new Font("Times New Roman",Font.BOLD,16));
+												g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+											}
+										}
+										else {
+											if(player.inventory[7] == "staff") {
+												if(mouseCollided(slot8x,slot8y,32,32)) {
+													g.setFont(new Font("Times New Roman",Font.BOLD,30));
+													
+													g.setColor(Color.gray.darker());
+													g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+													
+													g.setColor(Color.black);
+													g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+													
+													g.setFont(new Font("Times New Roman",Font.BOLD,16));
+													g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+												}
+											}
+											else {
+												if(player.inventory[7] == "steelSword") {
+													if(mouseCollided(slot8x,slot8y,32,32)) {
+														g.setFont(new Font("Times New Roman",Font.BOLD,30));
+														
+														g.setColor(Color.gray.darker());
+														g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+														
+														g.setColor(Color.black);
+														g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+														
+														g.setFont(new Font("Times New Roman",Font.BOLD,16));
+														g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+													}
+												}
+												else {
+													if(player.inventory[7] == "woodenSword") {
+														if(mouseCollided(slot8x,slot8y,32,32)) {
+															g.setFont(new Font("Times New Roman",Font.BOLD,30));
+															
+															g.setColor(Color.gray.darker());
+															g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+															
+															g.setColor(Color.black);
+															g.drawString(player.inventory[7], mousemanager.mousex - 220, mousemanager.mousey + 110);
+															
+															g.setFont(new Font("Times New Roman",Font.BOLD,16));
+															g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 9
+		if(player.inventory[8] == "leather helmet") {
+			if(mouseCollided(slot9x,slot9y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+			}
+		}
+		else {
+			if(player.inventory[8] == "mage hood") {
+				if(mouseCollided(slot9x,slot9y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				}
+			}
+			else {
+				if(player.inventory[8] == "thief hood") {
+					if(mouseCollided(slot9x,slot9y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					}
+				}
+				else {
+					if(player.inventory[8] == "leather chest") {
+						if(mouseCollided(slot9x,slot9y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						}
+					}
+					else {
+						if(player.inventory[8] == "thief robe") {
+							if(mouseCollided(slot9x,slot9y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							}
+						}
+						else {
+							if(player.inventory[8] == "mage robe") {
+								if(mouseCollided(slot9x,slot9y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[8], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		//inventory slot 10
+		if(player.inventory[9] == "leather helmet") {
+			if(mouseCollided(slot10x,slot10y,32,32)) {
+				g.setFont(new Font("Times New Roman",Font.BOLD,30));
+				
+				g.setColor(Color.gray.darker());
+				g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+				
+				g.setColor(Color.black);
+				g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+				
+				g.setFont(new Font("Times New Roman",Font.BOLD,16));
+				g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+			}
+		}
+		else {
+			if(player.inventory[9] == "mage hood") {
+				if(mouseCollided(slot10x,slot10y,32,32)) {
+					g.setFont(new Font("Times New Roman",Font.BOLD,30));
+					
+					g.setColor(Color.gray.darker());
+					g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+					
+					g.setColor(Color.black);
+					g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+					
+					g.setFont(new Font("Times New Roman",Font.BOLD,16));
+					g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+				}
+			}
+			else {
+				if(player.inventory[9] == "thief hood") {
+					if(mouseCollided(slot10x,slot10y,32,32)) {
+						g.setFont(new Font("Times New Roman",Font.BOLD,30));
+						
+						g.setColor(Color.gray.darker());
+						g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+						
+						g.setColor(Color.black);
+						g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+						
+						g.setFont(new Font("Times New Roman",Font.BOLD,16));
+						g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+					}
+				}
+				else {
+					if(player.inventory[9] == "leather chest") {
+						if(mouseCollided(slot10x,slot10y,32,32)) {
+							g.setFont(new Font("Times New Roman",Font.BOLD,30));
+							
+							g.setColor(Color.gray.darker());
+							g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+							
+							g.setColor(Color.black);
+							g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+							
+							g.setFont(new Font("Times New Roman",Font.BOLD,16));
+							g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+						}
+					}
+					else {
+						if(player.inventory[9] == "thief robe") {
+							if(mouseCollided(slot10x,slot10y,32,32)) {
+								g.setFont(new Font("Times New Roman",Font.BOLD,30));
+								
+								g.setColor(Color.gray.darker());
+								g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+								
+								g.setColor(Color.black);
+								g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+								
+								g.setFont(new Font("Times New Roman",Font.BOLD,16));
+								g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+							}
+						}
+						else {
+							if(player.inventory[9] == "mage robe") {
+								if(mouseCollided(slot10x,slot10y,32,32)) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex - 300, mousemanager.mousey + 50, 300, 100);
+									
+									g.setColor(Color.black);
+									g.drawString(player.inventory[9], mousemanager.mousex - 220, mousemanager.mousey + 110);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to equip", mousemanager.mousex - 200, mousemanager.mousey + 130);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	public void update(Graphics graphics) {
@@ -541,7 +6124,7 @@ public class Game implements ActionListener {
 				guardRespawn = -1;
 			}
 			
-			if(location == "armorer") {
+			if(location == "armorer" || location == "blacksmith") {
 				if(mouseCollided(armorerClerk.x,armorerClerk.y,armorerClerk.w,armorerClerk.h)) {
 					if(mousemanager.isLeftPressed() && pressDelay == 0) {
 						talkingToClerk = true;
@@ -581,10 +6164,46 @@ public class Game implements ActionListener {
 						else {
 							if(location == "blacksmith") {
 								g.drawImage(blacksmith.guy, 0, 0, null);
+								g.drawImage(armorClerk.guy, armorerClerk.x, armorerClerk.y, null);
 							}
 							else {
 								if(location == "town2") {
 									g.drawImage(town2.guy, 0, 0, null);
+								}
+								else {
+									if(location == "woods2") {
+										g.drawImage(woods2.guy, 0, 0, null);
+									}
+									else {
+										if(location == "woods3") {
+											g.drawImage(woods3.guy, 0, 0, null);
+										}
+										else {
+											if(location == "woods4") {
+												g.drawImage(woods4.guy, 0, 0, null);
+											}
+											else {
+												if(location == "woods5") {
+													g.drawImage(woods5.guy, 0, 0, null);
+												}
+												else {
+													if(location == "woods6") {
+														g.drawImage(woods6.guy, 0, 0, null);
+													}
+													else {
+														if(location == "woods7") {
+															g.drawImage(woods7.guy, 0, 0, null);
+														}
+														else {
+															if(location == "camp") {
+																g.drawImage(camp.guy, 0, 0, null);
+															}
+														}
+													}
+												}
+											}
+										}
+									}
 								}
 							}
 						}
@@ -592,13 +6211,46 @@ public class Game implements ActionListener {
 				}
 			}
 			
-			
+			//armor in the shop
 			if(location == "armorer" && armorVisible) {	//draws the armor if armorVisible is true
 				g.drawImage(leatherHelm.guy, armorx, armory, null);
 			}
 			
 			if(location == "armorer" && leather_chest.restockTimer == 0) {
 				g.drawImage(leatherChest_I.guy, leather_chest.x, leather_chest.y, null);
+			}
+			
+			if(location == "armorer" && thief_hood.restockTimer == 0) {
+				g.drawImage(thiefHelm.guy, thief_hood.x, thief_hood.y, null);
+			}
+			
+			if(location == "armorer" && thief_robe.restockTimer == 0) {
+				g.drawImage(thiefRobe_I.guy, thief_robe.x, thief_robe.y, null);
+			}
+			
+			if(location == "armorer" && mage_hood.restockTimer == 0) {
+				g.drawImage(hoodHelm.guy, mage_hood.x, mage_hood.y, null);
+			}
+			
+			if(location == "armorer" && mage_robe.restockTimer == 0) {
+				g.drawImage(mageRobe_I.guy, mage_robe.x, mage_robe.y, null);
+			}
+			
+			//weapons in the shop
+			if(location == "blacksmith" && woodSword.restockTimer == 0) {
+				g.drawImage(woodenSword_I.guy, woodSword.x, woodSword.y, null);
+			}
+			
+			if(location == "blacksmith" && SteelSword.restockTimer == 0) {
+				g.drawImage(steelSword_I.guy, SteelSword.x, SteelSword.y, null);
+			}
+			
+			if(location == "blacksmith" && Dagger.restockTimer == 0) {
+				g.drawImage(dagger_I.guy, Dagger.x, Dagger.y, null);
+			}
+			
+			if(location == "blacksmith" && Shank.restockTimer == 0) {
+				g.drawImage(shank_I.guy, Shank.x, Shank.y, null);
 			}
 			
 			
@@ -624,7 +6276,7 @@ public class Game implements ActionListener {
 							}
 							else {
 								target.hp -= 20;
-								dialogueSlide = -4;	//odio
+								dialogueSlide = -4;
 								pressDelay = 40;
 								hostile = true;
 								turn = "guard";
@@ -668,7 +6320,7 @@ public class Game implements ActionListener {
 							}
 							else {
 								enemyTarget.hp -= 20;
-								dialogueSlide = -4;	//odio
+								dialogueSlide = -4;
 								pressDelay = 40;
 								enemyTarget.hostile = true;
 								turn = "chicken";	//use toString() so the turn isnt just chicken
@@ -721,27 +6373,27 @@ public class Game implements ActionListener {
 			//legs
 			
 			//weapon
-			if(playerWeapon == Weapon.woodenSword) {
+			if(playerWeapon == "woodenSword") {
 				g.drawImage(woodenSword.guy, 32*16, 32*10, null);
 			}
 			else {
-				if(playerWeapon == Weapon.steelSword) {
+				if(playerWeapon == "steelSword") {
 					g.drawImage(steelSword.guy, 32*16, 32*10, null);
 				}
 				else {
-					if(playerWeapon == Weapon.wand) {
+					if(playerWeapon == "wand") {
 						g.drawImage(wand.guy, 32*16, 32*10, null);
 					}
 					else {
-						if(playerWeapon == Weapon.staff) {
+						if(playerWeapon == "staff") {
 							g.drawImage(staff.guy, 32*16, 32*10, null);
 						}
 						else {
-							if(playerWeapon == Weapon.shank) {
+							if(playerWeapon == "shank") {
 								g.drawImage(shank.guy, 32*16, 32*10, null);
 							}
 							else {
-								if(playerWeapon == Weapon.dagger) {
+								if(playerWeapon == "dagger") {
 									g.drawImage(dagger.guy, 32*16, 32*10, null);
 								}
 							}
@@ -752,7 +6404,14 @@ public class Game implements ActionListener {
 			
 			//draws the in-game UI
 			g.setColor(Color.gray.darker());
+			g.fillRect(1085, 0, WIDTH - 1080, HEIGHT);
+			
+			g.setColor(Color.black);
+			g.drawRect(1085, 0, WIDTH - 1080, HEIGHT);
+			
+			g.setColor(Color.gray.darker());
 			g.fillRect(2, HEIGHT - 149, WIDTH - 4, 148);
+			g.drawImage(backpack.guy, 1085, 0, null);
 			
 			g.setColor(Color.black);
 			
@@ -797,15 +6456,19 @@ public class Game implements ActionListener {
 			}
 			
 			if(dialogueSlide == 0 || dialogueSlide == 1) {
-				if(talkingToClerk && location == "armorer") {
-					g.drawImage(toolbar_human.guy, 2, HEIGHT - 149, null);
-					g.drawImage(toolbar_leather.guy, 2, HEIGHT - 149, null);
+				if(talkingToClerk) {
+					if(location == "armorer" || location == "blacksmith") {
+						g.drawImage(toolbar_human.guy, 2, HEIGHT - 149, null);
+						g.drawImage(toolbar_leather.guy, 2, HEIGHT - 149, null);
+					}
 				}
 			}
 			else {
-				if(location == "armorer" && pressDelay == 0) {
-					dialogueSlide = 0;
-					talkingToClerk = false;
+				if(location == "armorer" || location == "blacksmith") {
+					if(pressDelay == 0) {
+						dialogueSlide = 0;
+						talkingToClerk = false;
+					}
 				}
 			}
 		
@@ -815,13 +6478,6 @@ public class Game implements ActionListener {
 			if(talkingToClerk == false && talkingToCitizen == false) {
 				if(wanted && location != "town") {
 					console.showText(">> Theft Failed: you've been caught", g);
-				}
-				else {
-					if(caughtChecker >= 0 && caught > 9) {
-						if(hostile == false) {
-							console.showText(">> Theft Successful", g);
-						}
-					}
 				}
 			}
 
@@ -842,13 +6498,15 @@ public class Game implements ActionListener {
 				talkingToGuard = false;
 			}
 			
-			if(location == "armorer" && talkingToClerk) {
-				if(dialogueSlide == 0) {
-					console.showText(armorerDialogue.slides[0], g);
-				}
-				else {
-					if(dialogueSlide == 1) {
-						console.showText(armorerDialogue.slides[1], g);
+			if(talkingToClerk && talkingToCitizen == false) {
+				if(location == "armorer" || location == "blacksmith") {
+					if(dialogueSlide == 0) {
+						console.showText(armorerDialogue.slides[0], g);
+					}
+					else {
+						if(dialogueSlide == 1) {
+							console.showText(armorerDialogue.slides[1], g);
+						}
 					}
 				}
 			}
@@ -907,6 +6565,15 @@ public class Game implements ActionListener {
 				}
 			}
 			
+			if(talkingToClerk && location == "blacksmith" && dialogueSlide > -1 && dialogueSlide < 2) {	//this if statement will change as more towns are added
+				if(okButton.active) {
+					g.drawImage(okActive.guy, okButton.x, okButton.y, null);
+				}
+				else {
+					g.drawImage(ok.guy, okButton.x, okButton.y, null);
+				}
+			}
+			
 			if(talkingToCitizen && dialogueSlide > -1 && dialogueSlide < 1) {	//this if statement will change as more towns are added
 				if(okButton.active) {
 					g.drawImage(okActive.guy, okButton.x, okButton.y, null);
@@ -930,6 +6597,38 @@ public class Game implements ActionListener {
 				g.drawImage(northButton.guy, north.x, north.y, null);
 			}
 			
+			g.drawImage(compass.guy, north.x, north.y+50, null);
+			
+			if(west.active) {
+				g.drawImage(leftActive.guy, west.x, west.y, null);
+			}
+			else {
+				g.drawImage(left.guy, west.x, west.y, null);
+			}
+			
+			if(east.active) {
+				g.drawImage(rightActive.guy, east.x, east.y, null);
+			}
+			else {
+				g.drawImage(right.guy, east.x, east.y, null);
+			}
+			
+			/*
+			if(location == "woods2") {
+				ann.assignInputs(2, ann.loc2Connections);
+				//ann.calculateOutput(0.71);
+				ann.calculateOutput(0.7);
+				ann.adjustValues(ann.loc2Connections);
+				System.out.println("" + ann.decisionNode.outputValue);
+			}*/
+			
+			if(location == "woods") {
+				ann.assignInputs(1, ann.loc1Connections);
+				ann.calculateOutput(0.54);
+				ann.adjustValues(ann.loc1Connections);
+				System.out.println("" + ann.decisionNode.outputValue);
+			}
+			
 			//directional buttons
 			if(mouseCollided(south.x,south.y,south.w,south.h)) {
 				south.active = true;
@@ -937,8 +6636,13 @@ public class Game implements ActionListener {
 				if(mousemanager.isLeftPressed() && pressDelay == 0) {
 					if(location == "town") {
 						location = "woods";
+						selectingTarget = false;
 						talkingToCitizen = false;
 						dialogueSlide = 0;
+						ann.adjustLocationConnections(true, 1, 0, ann.loc2Connections);
+						ann.assignInputs(1, ann.loc1Connections);
+						ann.calculateOutput(0.54);
+						System.out.println("" + ann.decisionNode.outputValue);
 						woodsMonsterChance = random.nextInt(10);
 						pressDelay = 15;
 					}
@@ -947,11 +6651,158 @@ public class Game implements ActionListener {
 							location = "town2";
 							pressDelay = 15;
 						}
+						else {
+							if(location == "woods2") {
+								location = "woods3";
+								ann.adjustLocationConnections(true, 3, 3,ann.loc2Connections);
+								ann.adjustLocationConnections(true, 1, 2, ann.loc3Connections);
+								ann.assignInputs(3, ann.loc3Connections);
+								ann.calculateOutput(0.1);
+								System.out.println("" + ann.decisionNode.outputValue);
+								pressDelay = 15;
+							}
+							else {
+								if(location == "woods4") {
+									location = "woods2";
+									ann.adjustLocationConnections(true, 1, 4,ann.loc2Connections);
+									ann.adjustLocationConnections(true, 3, 2, ann.loc4Connections);
+									ann.assignInputs(2, ann.loc2Connections);
+									ann.calculateOutput(0.70);
+									System.out.println("" + ann.decisionNode.outputValue);
+									pressDelay = 15;
+								}
+								else {
+									if(location == "woods5") {
+										location = "woods6";
+										ann.adjustLocationConnections(true, 3, 6,ann.loc5Connections);
+										ann.adjustLocationConnections(true, 1, 5, ann.loc6Connections);
+										ann.assignInputs(6, ann.loc6Connections);
+										ann.calculateOutput(0.5);
+										System.out.println("" + ann.decisionNode.outputValue);
+										pressDelay = 15;
+									}
+									else {
+										if(location == "camp") {
+											location = "woods7";
+											pressDelay = 15;
+										}
+									}
+								}
+							}
+						}
 					}
 				}
 			}
 			else {
 				south.active = false;
+			}
+			
+			if(mouseCollided(east.x,east.y,east.w,east.h)) {
+				east.active = true;
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					if(location == "woods2") {
+						location = "woods";
+						selectingTarget = false;
+						talkingToCitizen = false;
+						dialogueSlide = 0;
+						ann.adjustLocationConnections(true, 0, 2,ann.loc1Connections);
+						ann.adjustLocationConnections(true, 2, 1, ann.loc2Connections);
+						ann.assignInputs(1, ann.loc1Connections);
+						ann.calculateOutput(0.54);
+						System.out.println("" + ann.decisionNode.outputValue);
+						woodsMonsterChance = random.nextInt(10);
+						pressDelay = 15;
+					}
+					else {
+						if(location == "woods3") {
+							location = "town2";
+							pressDelay = 15;
+						}
+						else {
+							if(location == "woods5") {
+								location = "woods2";
+								ann.adjustLocationConnections(true, 2, 2,ann.loc5Connections);
+								ann.adjustLocationConnections(true, 0, 5, ann.loc2Connections);
+								ann.assignInputs(2, ann.loc2Connections);
+								ann.calculateOutput(0.70);
+								System.out.println("" + ann.decisionNode.outputValue);
+								pressDelay = 15;
+							}
+							else {
+								if(location == "woods6") {
+									location = "woods3";
+									pressDelay = 15;
+								}
+								else {
+									if(location == "woods7") {
+										location = "woods6";
+										pressDelay = 15;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			else {
+				east.active = false;
+			}
+			
+			if(mouseCollided(west.x,west.y,west.w,west.h)) {
+				west.active = true;
+				
+				if(mousemanager.isLeftPressed() && pressDelay == 0) {
+					if(location == "woods") {
+						location = "woods2";
+						ann.adjustLocationConnections(true, 0, 2,ann.loc1Connections);
+						ann.adjustLocationConnections(true, 2, 1, ann.loc2Connections);
+						ann.adjustLocationConnections(false, 0, 0, ann.loc2Connections);
+						ann.assignInputs(2, ann.loc2Connections);
+						//ann.calculateOutput(0.71);
+						ann.calculateOutput(0.7);
+						ann.adjustValues(ann.loc2Connections);
+						System.out.println("" + ann.decisionNode.outputValue);
+						woodsMonsterChance = 0;
+						selectingTarget = false;
+						talkingToCitizen = false;
+						dialogueSlide = 0;
+						pressDelay = 15;
+					}
+					else {
+						if(location == "town2") {
+							woodsMonsterChance = 0;
+							location = "woods3";
+							pressDelay = 15;
+						}
+						else {
+							if(location == "woods2") {
+								location = "woods5";
+								ann.adjustLocationConnections(true, 0, 5,ann.loc2Connections);
+								ann.adjustLocationConnections(true, 2, 2, ann.loc5Connections);
+								ann.assignInputs(5, ann.loc5Connections);
+								ann.calculateOutput(0.3);
+								System.out.println("" + ann.decisionNode.outputValue);
+								pressDelay = 15;
+							}
+							else {
+								if(location == "woods3") {
+									location = "woods6";
+									pressDelay = 15;
+								}
+								else {
+									if(location == "woods6") {
+										location = "woods7";
+										pressDelay = 15;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			else {
+				west.active = false;
 			}
 			
 			
@@ -965,7 +6816,9 @@ public class Game implements ActionListener {
 				
 				if(mousemanager.isLeftPressed() && pressDelay == 0) {
 					if(location == "woods") {
+						chicken.hostile = false;
 						location = "town";
+						selectingTarget = false;
 						if(wanted) {
 							hostile = true;;
 							wanted = false;
@@ -983,6 +6836,40 @@ public class Game implements ActionListener {
 							woodsMonsterChance = random.nextInt(10);
 							pressDelay = 15;
 						}
+						else {
+							if(location == "woods3") {
+								location = "woods2";
+								ann.adjustLocationConnections(true, 1, 2,ann.loc3Connections);
+								ann.adjustLocationConnections(true, 3, 3, ann.loc2Connections);
+								ann.assignInputs(2, ann.loc2Connections);
+								ann.calculateOutput(0.71);
+								System.out.println("" + ann.decisionNode.outputValue);
+								pressDelay = 15;
+							}
+							else {
+								if(location == "woods2") {
+									location = "woods4";
+									ann.adjustLocationConnections(true, 3, 2,ann.loc4Connections);
+									ann.adjustLocationConnections(true, 1, 4, ann.loc2Connections);
+									ann.assignInputs(4, ann.loc4Connections);
+									ann.calculateOutput(0.1);
+									System.out.println("" + ann.decisionNode.outputValue);
+									pressDelay = 15;
+								}
+								else {
+									if(location == "woods6") {
+										location = "woods5";
+										pressDelay = 15;
+									}
+									else {
+										if(location == "woods7") {
+											location = "camp";
+											pressDelay = 15;
+										}
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -992,7 +6879,7 @@ public class Game implements ActionListener {
 			
 			if(woodsMonsterChance > 4 && location == "woods" && dialogueSlide == 0) {
 				console.showText(">> A chicken has appeared", g);
-				caught = -3;
+				caught = 20;
 			}
 			
 			if(woodsMonsterChance > 4 && location == "woods" && chicken.hp > 0) {
@@ -1012,15 +6899,90 @@ public class Game implements ActionListener {
 				}
 			}
 			
+			if(location == "woods2") {
+				if(chicken.hp < 1 || woodsMonsterChance < 5) {
+					dialogueSlide = 0;
+					g.setColor(Color.gray.darker());
+					g.fillRect(console.x, console.y - 30, 500, 50);
+					console.showText(">> You can't see any nearby exit from the woods", g);
+				}
+			}
+			
+			if(location == "camp") {
+				if(chicken.hp < 1 || woodsMonsterChance < 5) {
+					dialogueSlide = 0;
+					g.setColor(Color.gray.darker());
+					g.fillRect(console.x, console.y - 30, 500, 50);
+					console.showText(">> You can't see any nearby exit from the woods", g);
+				}
+			}
+			
+			if(location == "woods7") {
+				if(chicken.hp < 1 || woodsMonsterChance < 5) {
+					dialogueSlide = 0;
+					g.setColor(Color.gray.darker());
+					g.fillRect(console.x, console.y - 30, 500, 50);
+					console.showText(">> You see a small camp to the north", g);
+				}
+			}
+			
+			if(location == "woods4") {
+				if(chicken.hp < 1 || woodsMonsterChance < 5) {
+					dialogueSlide = 0;
+					g.setColor(Color.gray.darker());
+					g.fillRect(console.x, console.y - 30, 500, 50);
+					console.showText(">> You can't see any nearby exit from the woods", g);
+				}
+			}
+			
+			if(location == "woods6") {
+				if(chicken.hp < 1 || woodsMonsterChance < 5) {
+					dialogueSlide = 0;
+					g.setColor(Color.gray.darker());
+					g.fillRect(console.x, console.y - 30, 500, 50);
+					console.showText(">> You see a dungeon off to the side... and it's, unnervingly clean...", g);
+				}
+			}
+			
+			if(location == "woods5") {
+				if(chicken.hp < 1 || woodsMonsterChance < 5) {
+					dialogueSlide = 0;
+					g.setColor(Color.gray.darker());
+					g.fillRect(console.x, console.y - 30, 500, 50);
+					console.showText(">> You can't see any nearby exit from the woods", g);
+				}
+			}
+			
+			if(location == "woods3") {
+				if(chicken.hp < 1 || woodsMonsterChance < 5) {
+					dialogueSlide = 0;
+					g.setColor(Color.gray.darker());
+					g.fillRect(console.x, console.y - 30, 500, 50);
+					console.showText(">> You see a town to the east", g);
+				}
+			}
+			
 			if(location == "armorer") {
 				if(talkingToClerk == false && talkingToCitizen == false && caught > 9) {
 					console.showText(">> You see a variety of armor for sale on the counter", g);
 				}
 			}
 			
+			if(location == "blacksmith") {
+				if(talkingToClerk == false && talkingToCitizen == false && caught > 9) {
+					console.showText(">> You see a variety of weapons for sale on the counter", g);
+				}
+			}
+			
 			if(location == "town") {
-				if(talkingToCitizen == false && wanted == false && hostile == false) {
-					console.showText(">> You are in a town with 2 houses, a castle, armorer, and blacksmith", g);
+				if(talkingToCitizen == false && wanted == false && dialogueSlide == 0) {
+					console.showText(">> You are in a town with 2 houses, a castle, armorer, and a blacksmith", g);
+				}
+			}
+			
+			if(location == "town2") {
+				if(talkingToCitizen == false && wanted == false && dialogueSlide == 0) {
+					console.showText(">> You are in a town with 3 houses, a castle, armorer, blacksmith, and a magic shop", g);
 				}
 			}
 			
@@ -1036,12 +6998,13 @@ public class Game implements ActionListener {
 			if(chicken.hp == -1) {
 				player.xp += 5;
 				chicken.hostile = false;
+				woodsMonsterChance = 0;
 				chicken.hp = -2;
 			}
 
 			
 			//guard attacking
-			if(mouseCollided(guard.x,guard.y,guard.w,guard.h)) {
+			if(mouseCollided(guard.x,guard.y,guard.w,guard.h) && location == "town") {
 				if(mousemanager.isLeftPressed() && pressDelay == 0) {
 					if(selectingTarget == true) {
 						target = guard;
@@ -1059,8 +7022,6 @@ public class Game implements ActionListener {
 							damage = ((weaponDamage*player.str - (weaponDamage*player.str / player.luck)) / (random.nextInt(player.luck - random.nextInt(5)) + 1));
 						}
 						
-						ann.assignAverageDamage(lastDamageDelt, damage, timesYouDeltDamage);
-						System.out.println("" + ann.e);
 						guard.hp -= damage;
 						dialogueSlide = -2;
 						hostile = true;
@@ -1072,7 +7033,8 @@ public class Game implements ActionListener {
 			
 			if(hostile && location == "town") {
 				if(turn == "guard" && guard.hp > 0 && pressDelay == 0) {
-					guard.calcDamage();
+					armorCheck();
+					guard.calcDamage(helm, ch, pa);
 					player.hp -= guard.damage;
 					dialogueSlide = -1;
 					turn = "you";
@@ -1387,8 +7349,8 @@ public class Game implements ActionListener {
 			if(target == guard && enemyTarget == null && selectingTarget == true) {	//maybe not if it equals null
 				pressDelay = 15;
 				selectingTarget = false;
-				System.out.println("Target: " + target);
 			}
+			
 			
 			//shows the player stat menu
 			if(playerMenuVisible) {
@@ -1447,850 +7409,6 @@ public class Game implements ActionListener {
 					g.drawString("Speech: " + player.speech, 32*18 + 3, 32*6 + 230);
 					g.drawString("Luck: " + player.luck, 32*18 + 3, 32*6 + 260);
 					g.drawString("Str: " + player.str, 32*18 + 3, 32*6 + 290);
-				}
-				else {	//shows items in the inventory
-					if(playerMenuState == "inventory") {
-						//inventory slot 1
-						if(player.inventory[0] == "leather helmet") {
-							g.drawImage(leatherHelm.guy, slot1x, slot1y, null);
-							
-							//equips the helmet and replaces it's slot with what you were originaly wearing
-							if(mouseCollided(slot1x,slot1y,32,32)) {
-								if(mousemanager.isLeftPressed() && pressDelay == 0) {
-									swapHelm = player.inventory[0];
-									player.inventory[0] = player.helmet;
-									player.helmet = swapHelm;
-									pressDelay = 15;
-								}
-							}
-						}
-						else {
-							if(player.inventory[0] == "mage hood") {
-								g.drawImage(hoodHelm.guy, slot1x, slot1y, null);
-								
-								if(mouseCollided(slot1x,slot1y,32,32)) {
-									if(mousemanager.isLeftPressed() && pressDelay == 0) {
-										swapHelm = player.inventory[0];
-										player.inventory[0] = player.helmet;
-										player.helmet = swapHelm;
-										pressDelay = 15;
-									}
-								}
-							}
-							else {
-								if(player.inventory[0] == "thief hood") {
-									g.drawImage(thiefHelm.guy, slot1x, slot1y, null);
-									
-									if(mouseCollided(slot1x,slot1y,32,32)) {
-										if(mousemanager.isLeftPressed() && pressDelay == 0) {
-											swapHelm = player.inventory[0];
-											player.inventory[0] = player.helmet;
-											player.helmet = swapHelm;
-											pressDelay = 15;
-										}
-									}
-								}
-								else {
-									if(player.inventory[0] == "leather chest") {
-										g.drawImage(leatherChest_I.guy, slot1x, slot1y, null);
-										
-										if(mouseCollided(slot1x,slot1y,32,32)) {
-											if(mousemanager.isLeftPressed() && pressDelay == 0) {
-												swapHelm = player.inventory[0];
-												player.inventory[0] = player.chest;
-												player.chest = swapHelm;
-												pressDelay = 15;
-											}
-										}
-									}
-									else {
-										if(player.inventory[0] == "thief robe") {
-											g.drawImage(thiefRobe_I.guy, slot1x, slot1y, null);
-											
-											if(mouseCollided(slot1x,slot1y,32,32)) {
-												if(mousemanager.isLeftPressed() && pressDelay == 0) {
-													swapHelm = player.inventory[0];
-													player.inventory[0] = player.chest;
-													player.chest = swapHelm;
-													pressDelay = 15;
-												}
-											}
-										}
-										else {
-											if(player.inventory[0] == "mage robe") {
-												g.drawImage(mageRobe_I.guy, slot1x, slot1y, null);
-												
-												if(mouseCollided(slot1x,slot1y,32,32)) {
-													if(mousemanager.isLeftPressed() && pressDelay == 0) {
-														swapHelm = player.inventory[0];
-														player.inventory[0] = player.chest;
-														player.chest = swapHelm;
-														pressDelay = 15;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-						
-						//inventory slot 2
-						if(player.inventory[1] == "leather helmet") {
-							g.drawImage(leatherHelm.guy, slot2x, slot2y, null);
-							
-							if(mouseCollided(slot2x,slot2y,32,32)) {
-								if(mousemanager.isLeftPressed() && pressDelay == 0) {
-									swapHelm = player.inventory[1];
-									player.inventory[1] = player.helmet;
-									player.helmet = swapHelm;
-									pressDelay = 15;
-								}
-							}
-						}
-						else {
-							if(player.inventory[1] == "mage hood") {
-								g.drawImage(hoodHelm.guy, slot2x, slot2y, null);
-								
-								if(mouseCollided(slot2x,slot2y,32,32)) {
-									if(mousemanager.isLeftPressed() && pressDelay == 0) {
-										swapHelm = player.inventory[1];
-										player.inventory[1] = player.helmet;
-										player.helmet = swapHelm;
-										pressDelay = 15;
-									}
-								}
-							}
-							else {
-								if(player.inventory[1] == "thief hood") {
-									g.drawImage(thiefHelm.guy, slot2x, slot2y, null);
-									
-									if(mouseCollided(slot2x,slot2y,32,32)) {
-										if(mousemanager.isLeftPressed() && pressDelay == 0) {
-											swapHelm = player.inventory[1];
-											player.inventory[1] = player.helmet;
-											player.helmet = swapHelm;
-											pressDelay = 15;
-										}
-									}
-								}
-								else {
-									if(player.inventory[1] == "leather chest") {
-										g.drawImage(leatherChest_I.guy, slot2x, slot2y, null);
-										
-										if(mouseCollided(slot2x,slot2y,32,32)) {
-											if(mousemanager.isLeftPressed() && pressDelay == 0) {
-												swapHelm = player.inventory[1];
-												player.inventory[1] = player.chest;
-												player.chest = swapHelm;
-												pressDelay = 15;
-											}
-										}
-									}
-									else {
-										if(player.inventory[1] == "thief robe") {
-											g.drawImage(thiefRobe_I.guy, slot2x, slot2y, null);
-											
-											if(mouseCollided(slot2x,slot2y,32,32)) {
-												if(mousemanager.isLeftPressed() && pressDelay == 0) {
-													swapHelm = player.inventory[1];
-													player.inventory[1] = player.chest;
-													player.chest = swapHelm;
-													pressDelay = 15;
-												}
-											}
-										}
-										else {
-											if(player.inventory[1] == "mage robe") {
-												g.drawImage(mageRobe_I.guy, slot2x, slot2y, null);
-												
-												if(mouseCollided(slot2x,slot2y,32,32)) {
-													if(mousemanager.isLeftPressed() && pressDelay == 0) {
-														swapHelm = player.inventory[1];
-														player.inventory[1] = player.chest;
-														player.chest = swapHelm;
-														pressDelay = 15;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-						
-						//inventory slot 3
-						if(player.inventory[2] == "leather helmet") {
-							g.drawImage(leatherHelm.guy, slot3x, slot3y, null);
-							
-							if(mouseCollided(slot3x,slot3y,32,32)) {
-								if(mousemanager.isLeftPressed() && pressDelay == 0) {
-									swapHelm = player.inventory[2];
-									player.inventory[2] = player.helmet;
-									player.helmet = swapHelm;
-									pressDelay = 15;
-								}
-							}
-						}
-						else {
-							if(player.inventory[2] == "mage hood") {
-								g.drawImage(hoodHelm.guy, slot3x, slot3y, null);
-								
-								if(mouseCollided(slot3x,slot3y,32,32)) {
-									if(mousemanager.isLeftPressed() && pressDelay == 0) {
-										swapHelm = player.inventory[2];
-										player.inventory[2] = player.helmet;
-										player.helmet = swapHelm;
-										pressDelay = 15;
-									}
-								}
-							}
-							else {
-								if(player.inventory[2] == "thief hood") {
-									g.drawImage(thiefHelm.guy, slot3x, slot3y, null);
-									
-									if(mouseCollided(slot3x,slot3y,32,32)) {
-										if(mousemanager.isLeftPressed() && pressDelay == 0) {
-											swapHelm = player.inventory[2];
-											player.inventory[2] = player.helmet;
-											player.helmet = swapHelm;
-											pressDelay = 15;
-										}
-									}
-								}
-								else {
-									if(player.inventory[2] == "leather chest") {
-										g.drawImage(leatherChest_I.guy, slot3x, slot3y, null);
-										
-										if(mouseCollided(slot3x,slot3y,32,32)) {
-											if(mousemanager.isLeftPressed() && pressDelay == 0) {
-												swapHelm = player.inventory[2];
-												player.inventory[2] = player.chest;
-												player.chest = swapHelm;
-												pressDelay = 15;
-											}
-										}
-									}
-									else {
-										if(player.inventory[2] == "thief robe") {
-											g.drawImage(thiefRobe_I.guy, slot3x, slot3y, null);
-											
-											if(mouseCollided(slot3x,slot3y,32,32)) {
-												if(mousemanager.isLeftPressed() && pressDelay == 0) {
-													swapHelm = player.inventory[2];
-													player.inventory[2] = player.chest;
-													player.chest = swapHelm;
-													pressDelay = 15;
-												}
-											}
-										}
-										else {
-											if(player.inventory[2] == "mage robe") {
-												g.drawImage(mageRobe_I.guy, slot3x, slot3y, null);
-												
-												if(mouseCollided(slot3x,slot3y,32,32)) {
-													if(mousemanager.isLeftPressed() && pressDelay == 0) {
-														swapHelm = player.inventory[2];
-														player.inventory[2] = player.chest;
-														player.chest = swapHelm;
-														pressDelay = 15;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-						
-						//inventory slot 4
-						if(player.inventory[3] == "leather helmet") {
-							g.drawImage(leatherHelm.guy, slot4x, slot4y, null);
-							
-							if(mouseCollided(slot4x,slot4y,32,32)) {
-								if(mousemanager.isLeftPressed() && pressDelay == 0) {
-									swapHelm = player.inventory[3];
-									player.inventory[3] = player.helmet;
-									player.helmet = swapHelm;
-									pressDelay = 15;
-								}
-							}
-						}
-						else {
-							if(player.inventory[3] == "mage hood") {
-								g.drawImage(hoodHelm.guy, slot4x, slot4y, null);
-								
-								if(mouseCollided(slot4x,slot4y,32,32)) {
-									if(mousemanager.isLeftPressed() && pressDelay == 0) {
-										swapHelm = player.inventory[3];
-										player.inventory[3] = player.helmet;
-										player.helmet = swapHelm;
-										pressDelay = 15;
-									}
-								}
-							}
-							else {
-								if(player.inventory[3] == "thief hood") {
-									g.drawImage(thiefHelm.guy, slot4x, slot4y, null);
-									
-									if(mouseCollided(slot4x,slot4y,32,32)) {
-										if(mousemanager.isLeftPressed() && pressDelay == 0) {
-											swapHelm = player.inventory[3];
-											player.inventory[3] = player.helmet;
-											player.helmet = swapHelm;
-											pressDelay = 15;
-										}
-									}
-								}
-								else {
-									if(player.inventory[3] == "leather chest") {
-										g.drawImage(leatherChest_I.guy, slot4x, slot4y, null);
-										
-										if(mouseCollided(slot4x,slot4y,32,32)) {
-											if(mousemanager.isLeftPressed() && pressDelay == 0) {
-												swapHelm = player.inventory[3];
-												player.inventory[3] = player.chest;
-												player.chest = swapHelm;
-												pressDelay = 15;
-											}
-										}
-									}
-									else {
-										if(player.inventory[3] == "thief robe") {
-											g.drawImage(thiefRobe_I.guy, slot4x, slot4y, null);
-											
-											if(mouseCollided(slot4x,slot4y,32,32)) {
-												if(mousemanager.isLeftPressed() && pressDelay == 0) {
-													swapHelm = player.inventory[3];
-													player.inventory[3] = player.chest;
-													player.chest = swapHelm;
-													pressDelay = 15;
-												}
-											}
-										}
-										else {
-											if(player.inventory[3] == "mage robe") {
-												g.drawImage(mageRobe_I.guy, slot4x, slot4y, null);
-												
-												if(mouseCollided(slot4x,slot4y,32,32)) {
-													if(mousemanager.isLeftPressed() && pressDelay == 0) {
-														swapHelm = player.inventory[3];
-														player.inventory[3] = player.chest;
-														player.chest = swapHelm;
-														pressDelay = 15;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-						
-						//inventory slot 5
-						if(player.inventory[4] == "leather helmet") {
-							g.drawImage(leatherHelm.guy, slot5x, slot5y, null);
-							
-							if(mouseCollided(slot5x,slot5y,32,32)) {
-								if(mousemanager.isLeftPressed() && pressDelay == 0) {
-									swapHelm = player.inventory[4];
-									player.inventory[4] = player.helmet;
-									player.helmet = swapHelm;
-									pressDelay = 15;
-								}
-							}
-						}
-						else {
-							if(player.inventory[4] == "mage hood") {
-								g.drawImage(hoodHelm.guy, slot5x, slot5y, null);
-								
-								if(mouseCollided(slot5x,slot5y,32,32)) {
-									if(mousemanager.isLeftPressed() && pressDelay == 0) {
-										swapHelm = player.inventory[4];
-										player.inventory[4] = player.helmet;
-										player.helmet = swapHelm;
-										pressDelay = 15;
-									}
-								}
-							}
-							else {
-								if(player.inventory[4] == "thief hood") {
-									g.drawImage(thiefHelm.guy, slot5x, slot5y, null);
-									
-									if(mouseCollided(slot5x,slot5y,32,32)) {
-										if(mousemanager.isLeftPressed() && pressDelay == 0) {
-											swapHelm = player.inventory[4];
-											player.inventory[4] = player.helmet;
-											player.helmet = swapHelm;
-											pressDelay = 15;
-										}
-									}
-								}
-								else {
-									if(player.inventory[4] == "leather chest") {
-										g.drawImage(leatherChest_I.guy, slot5x, slot5y, null);
-										
-										if(mouseCollided(slot5x,slot5y,32,32)) {
-											if(mousemanager.isLeftPressed() && pressDelay == 0) {
-												swapHelm = player.inventory[4];
-												player.inventory[4] = player.chest;
-												player.chest = swapHelm;
-												pressDelay = 15;
-											}
-										}
-									}
-									else {
-										if(player.inventory[4] == "thief robe") {
-											g.drawImage(thiefRobe_I.guy, slot5x, slot5y, null);
-											
-											if(mouseCollided(slot5x,slot5y,32,32)) {
-												if(mousemanager.isLeftPressed() && pressDelay == 0) {
-													swapHelm = player.inventory[4];
-													player.inventory[4] = player.chest;
-													player.chest = swapHelm;
-													pressDelay = 15;
-												}
-											}
-										}
-										else {
-											if(player.inventory[4] == "mage robe") {
-												g.drawImage(mageRobe_I.guy, slot5x, slot5y, null);
-												
-												if(mouseCollided(slot5x,slot5y,32,32)) {
-													if(mousemanager.isLeftPressed() && pressDelay == 0) {
-														swapHelm = player.inventory[4];
-														player.inventory[4] = player.chest;
-														player.chest = swapHelm;
-														pressDelay = 15;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-						
-						//inventory slot 6
-						if(player.inventory[5] == "leather helmet") {
-							g.drawImage(leatherHelm.guy, slot6x, slot6y, null);
-							
-							if(mouseCollided(slot6x,slot6y,32,32)) {
-								if(mousemanager.isLeftPressed() && pressDelay == 0) {
-									swapHelm = player.inventory[5];
-									player.inventory[5] = player.helmet;
-									player.helmet = swapHelm;
-									pressDelay = 15;
-								}
-							}
-						}
-						else {
-							if(player.inventory[5] == "mage hood") {
-								g.drawImage(hoodHelm.guy, slot6x, slot6y, null);
-								
-								if(mouseCollided(slot6x,slot6y,32,32)) {
-									if(mousemanager.isLeftPressed() && pressDelay == 0) {
-										swapHelm = player.inventory[5];
-										player.inventory[5] = player.helmet;
-										player.helmet = swapHelm;
-										pressDelay = 15;
-									}
-								}
-							}
-							else {
-								if(player.inventory[5] == "thief hood") {
-									g.drawImage(thiefHelm.guy, slot6x, slot6y, null);
-									
-									if(mouseCollided(slot6x,slot6y,32,32)) {
-										if(mousemanager.isLeftPressed() && pressDelay == 0) {
-											swapHelm = player.inventory[5];
-											player.inventory[5] = player.helmet;
-											player.helmet = swapHelm;
-											pressDelay = 15;
-										}
-									}
-								}
-								else {
-									if(player.inventory[5] == "leather chest") {
-										g.drawImage(leatherChest_I.guy, slot6x, slot6y, null);
-										
-										if(mouseCollided(slot6x,slot6y,32,32)) {
-											if(mousemanager.isLeftPressed() && pressDelay == 0) {
-												swapHelm = player.inventory[5];
-												player.inventory[5] = player.chest;
-												player.chest = swapHelm;
-												pressDelay = 15;
-											}
-										}
-									}
-									else {
-										if(player.inventory[5] == "thief robe") {
-											g.drawImage(thiefRobe_I.guy, slot6x, slot6y, null);
-											
-											if(mouseCollided(slot6x,slot6y,32,32)) {
-												if(mousemanager.isLeftPressed() && pressDelay == 0) {
-													swapHelm = player.inventory[5];
-													player.inventory[5] = player.chest;
-													player.chest = swapHelm;
-													pressDelay = 15;
-												}
-											}
-										}
-										else {
-											if(player.inventory[5] == "mage robe") {
-												g.drawImage(mageRobe_I.guy, slot6x, slot6y, null);
-												
-												if(mouseCollided(slot6x,slot6y,32,32)) {
-													if(mousemanager.isLeftPressed() && pressDelay == 0) {
-														swapHelm = player.inventory[5];
-														player.inventory[5] = player.chest;
-														player.chest = swapHelm;
-														pressDelay = 15;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-						
-						//inventory slot 7
-						if(player.inventory[6] == "leather helmet") {
-							g.drawImage(leatherHelm.guy, slot7x, slot7y, null);
-							
-							if(mouseCollided(slot7x,slot7y,32,32)) {
-								if(mousemanager.isLeftPressed() && pressDelay == 0) {
-									swapHelm = player.inventory[6];
-									player.inventory[6] = player.helmet;
-									player.helmet = swapHelm;
-									pressDelay = 15;
-								}
-							}
-						}
-						else {
-							if(player.inventory[6] == "mage hood") {
-								g.drawImage(hoodHelm.guy, slot7x, slot7y, null);
-								
-								if(mouseCollided(slot7x,slot7y,32,32)) {
-									if(mousemanager.isLeftPressed() && pressDelay == 0) {
-										swapHelm = player.inventory[6];
-										player.inventory[6] = player.helmet;
-										player.helmet = swapHelm;
-										pressDelay = 15;
-									}
-								}
-							}
-							else {
-								if(player.inventory[6] == "thief hood") {
-									g.drawImage(thiefHelm.guy, slot7x, slot7y, null);
-									
-									if(mouseCollided(slot7x,slot7y,32,32)) {
-										if(mousemanager.isLeftPressed() && pressDelay == 0) {
-											swapHelm = player.inventory[6];
-											player.inventory[6] = player.helmet;
-											player.helmet = swapHelm;
-											pressDelay = 15;
-										}
-									}
-								}
-								else {
-									if(player.inventory[6] == "leather chest") {
-										g.drawImage(leatherChest_I.guy, slot7x, slot7y, null);
-										
-										if(mouseCollided(slot7x,slot7y,32,32)) {
-											if(mousemanager.isLeftPressed() && pressDelay == 0) {
-												swapHelm = player.inventory[6];
-												player.inventory[6] = player.chest;
-												player.chest = swapHelm;
-												pressDelay = 15;
-											}
-										}
-									}
-									else {
-										if(player.inventory[6] == "thief robe") {
-											g.drawImage(thiefRobe_I.guy, slot7x, slot7y, null);
-											
-											if(mouseCollided(slot7x,slot7y,32,32)) {
-												if(mousemanager.isLeftPressed() && pressDelay == 0) {
-													swapHelm = player.inventory[6];
-													player.inventory[6] = player.chest;
-													player.chest = swapHelm;
-													pressDelay = 15;
-												}
-											}
-										}
-										else {
-											if(player.inventory[6] == "mage robe") {
-												g.drawImage(mageRobe_I.guy, slot7x, slot7y, null);
-												
-												if(mouseCollided(slot7x,slot7y,32,32)) {
-													if(mousemanager.isLeftPressed() && pressDelay == 0) {
-														swapHelm = player.inventory[6];
-														player.inventory[6] = player.chest;
-														player.chest = swapHelm;
-														pressDelay = 15;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-						
-						//inventory slot 8
-						if(player.inventory[7] == "leather helmet") {
-							g.drawImage(leatherHelm.guy, slot8x, slot8y, null);
-							
-							if(mouseCollided(slot8x,slot8y,32,32)) {
-								if(mousemanager.isLeftPressed() && pressDelay == 0) {
-									swapHelm = player.inventory[7];
-									player.inventory[7] = player.helmet;
-									player.helmet = swapHelm;
-									pressDelay = 15;
-								}
-							}
-						}
-						else {
-							if(player.inventory[7] == "mage hood") {
-								g.drawImage(hoodHelm.guy, slot8x, slot8y, null);
-								
-								if(mouseCollided(slot8x,slot8y,32,32)) {
-									if(mousemanager.isLeftPressed() && pressDelay == 0) {
-										swapHelm = player.inventory[7];
-										player.inventory[7] = player.helmet;
-										player.helmet = swapHelm;
-										pressDelay = 15;
-									}
-								}
-							}
-							else {
-								if(player.inventory[7] == "thief hood") {
-									g.drawImage(thiefHelm.guy, slot8x, slot8y, null);
-									
-									if(mouseCollided(slot8x,slot8y,32,32)) {
-										if(mousemanager.isLeftPressed() && pressDelay == 0) {
-											swapHelm = player.inventory[7];
-											player.inventory[7] = player.helmet;
-											player.helmet = swapHelm;
-											pressDelay = 15;
-										}
-									}
-								}
-								else {
-									if(player.inventory[7] == "leather chest") {
-										g.drawImage(leatherChest_I.guy, slot8x, slot8y, null);
-										
-										if(mouseCollided(slot8x,slot8y,32,32)) {
-											if(mousemanager.isLeftPressed() && pressDelay == 0) {
-												swapHelm = player.inventory[7];
-												player.inventory[7] = player.chest;
-												player.chest = swapHelm;
-												pressDelay = 15;
-											}
-										}
-									}
-									else {
-										if(player.inventory[7] == "thief robe") {
-											g.drawImage(thiefRobe_I.guy, slot8x, slot8y, null);
-											
-											if(mouseCollided(slot8x,slot8y,32,32)) {
-												if(mousemanager.isLeftPressed() && pressDelay == 0) {
-													swapHelm = player.inventory[7];
-													player.inventory[7] = player.chest;
-													player.chest = swapHelm;
-													pressDelay = 15;
-												}
-											}
-										}
-										else {
-											if(player.inventory[7] == "mage robe") {
-												g.drawImage(mageRobe_I.guy, slot8x, slot8y, null);
-												
-												if(mouseCollided(slot8x,slot8y,32,32)) {
-													if(mousemanager.isLeftPressed() && pressDelay == 0) {
-														swapHelm = player.inventory[7];
-														player.inventory[7] = player.chest;
-														player.chest = swapHelm;
-														pressDelay = 15;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-						
-						//inventory slot 9
-						if(player.inventory[8] == "leather helmet") {
-							g.drawImage(leatherHelm.guy, slot9x, slot9y, null);
-							
-							if(mouseCollided(slot9x,slot9y,32,32)) {
-								if(mousemanager.isLeftPressed() && pressDelay == 0) {
-									swapHelm = player.inventory[8];
-									player.inventory[8] = player.helmet;
-									player.helmet = swapHelm;
-									pressDelay = 15;
-								}
-							}
-						}
-						else {
-							if(player.inventory[8] == "mage hood") {
-								g.drawImage(hoodHelm.guy, slot9x, slot9y, null);
-								
-								if(mouseCollided(slot9x,slot9y,32,32)) {
-									if(mousemanager.isLeftPressed() && pressDelay == 0) {
-										swapHelm = player.inventory[8];
-										player.inventory[8] = player.helmet;
-										player.helmet = swapHelm;
-										pressDelay = 15;
-									}
-								}
-							}
-							else {
-								if(player.inventory[8] == "thief hood") {
-									g.drawImage(thiefHelm.guy, slot9x, slot9y, null);
-									
-									if(mouseCollided(slot9x,slot9y,32,32)) {
-										if(mousemanager.isLeftPressed() && pressDelay == 0) {
-											swapHelm = player.inventory[8];
-											player.inventory[8] = player.helmet;
-											player.helmet = swapHelm;
-											pressDelay = 15;
-										}
-									}
-								}
-								else {
-									if(player.inventory[8] == "leather chest") {
-										g.drawImage(leatherChest_I.guy, slot9x, slot9y, null);
-										
-										if(mouseCollided(slot9x,slot9y,32,32)) {
-											if(mousemanager.isLeftPressed() && pressDelay == 0) {
-												swapHelm = player.inventory[8];
-												player.inventory[8] = player.chest;
-												player.chest = swapHelm;
-												pressDelay = 15;
-											}
-										}
-									}
-									else {
-										if(player.inventory[8] == "thief robe") {
-											g.drawImage(thiefRobe_I.guy, slot9x, slot9y, null);
-											
-											if(mouseCollided(slot9x,slot9y,32,32)) {
-												if(mousemanager.isLeftPressed() && pressDelay == 0) {
-													swapHelm = player.inventory[8];
-													player.inventory[8] = player.chest;
-													player.chest = swapHelm;
-													pressDelay = 15;
-												}
-											}
-										}
-										else {
-											if(player.inventory[8] == "mage robe") {
-												g.drawImage(mageRobe_I.guy, slot9x, slot9y, null);
-												
-												if(mouseCollided(slot9x,slot9y,32,32)) {
-													if(mousemanager.isLeftPressed() && pressDelay == 0) {
-														swapHelm = player.inventory[8];
-														player.inventory[8] = player.chest;
-														player.chest = swapHelm;
-														pressDelay = 15;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-						
-						//inventory slot 10
-						if(player.inventory[9] == "leather helmet") {
-							g.drawImage(leatherHelm.guy, slot10x, slot10y, null);
-							
-							if(mouseCollided(slot10x,slot10y,32,32)) {
-								if(mousemanager.isLeftPressed() && pressDelay == 0) {
-									swapHelm = player.inventory[9];
-									player.inventory[9] = player.helmet;
-									player.helmet = swapHelm;
-									pressDelay = 15;
-								}
-							}
-						}
-						else {
-							if(player.inventory[9] == "mage hood") {
-								g.drawImage(hoodHelm.guy, slot10x, slot10y, null);
-								
-								if(mouseCollided(slot10x,slot10y,32,32)) {
-									if(mousemanager.isLeftPressed() && pressDelay == 0) {
-										swapHelm = player.inventory[9];
-										player.inventory[9] = player.helmet;
-										player.helmet = swapHelm;
-										pressDelay = 15;
-									}
-								}
-							}
-							else {
-								if(player.inventory[9] == "thief hood") {
-									g.drawImage(thiefHelm.guy, slot10x, slot10y, null);
-									
-									if(mouseCollided(slot10x,slot10y,32,32)) {
-										if(mousemanager.isLeftPressed() && pressDelay == 0) {
-											swapHelm = player.inventory[9];
-											player.inventory[9] = player.helmet;
-											player.helmet = swapHelm;
-											pressDelay = 15;
-										}
-									}
-								}
-								else {
-									if(player.inventory[9] == "leather chest") {
-										g.drawImage(leatherChest_I.guy, slot10x, slot10y, null);
-										
-										if(mouseCollided(slot10x,slot10y,32,32)) {
-											if(mousemanager.isLeftPressed() && pressDelay == 0) {
-												swapHelm = player.inventory[9];
-												player.inventory[9] = player.chest;
-												player.chest = swapHelm;
-												pressDelay = 15;
-											}
-										}
-									}
-									else {
-										if(player.inventory[9] == "thief robe") {
-											g.drawImage(thiefRobe_I.guy, slot10x, slot10y, null);
-											
-											if(mouseCollided(slot10x,slot10y,32,32)) {
-												if(mousemanager.isLeftPressed() && pressDelay == 0) {
-													swapHelm = player.inventory[9];
-													player.inventory[9] = player.chest;
-													player.chest = swapHelm;
-													pressDelay = 15;
-												}
-											}
-										}
-										else {
-											if(player.inventory[9] == "mage robe") {
-												g.drawImage(mageRobe_I.guy, slot10x, slot10y, null);
-												
-												if(mouseCollided(slot10x,slot10y,32,32)) {
-													if(mousemanager.isLeftPressed() && pressDelay == 0) {
-														swapHelm = player.inventory[9];
-														player.inventory[9] = player.chest;
-														player.chest = swapHelm;
-														pressDelay = 15;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
 				}
 				
 				//shows the face
@@ -2359,16 +7477,16 @@ public class Game implements ActionListener {
 				//shows starter equipment on the head and sets the player's starter weapon
 				if(player.Class == "warrior") {
 					g.drawImage(bigLeather.guy, 3, 30, null);
-					playerWeapon = Weapon.woodenSword;
+					playerWeapon = "woodenSword";
 				}
 				else {
 					if(player.Class == "thief") {
 						g.drawImage(bigThief.guy, 2, 30, null);
-						playerWeapon = Weapon.shank;
+						playerWeapon = "shank";
 					}
 					else {
 						g.drawImage(bigHood.guy, 2, 30, null);
-						playerWeapon = Weapon.wand;
+						playerWeapon = "wand";
 					}
 				}
 				
@@ -2646,8 +7764,6 @@ public class Game implements ActionListener {
 				}
 			}
 		}
-		//shows the custom cursor image at the mouse's x and y
-		g.drawImage(cursor.guy, mousemanager.mousex, mousemanager.mousey, null);
 	}
 
 	@Override
@@ -2660,15 +7776,31 @@ public class Game implements ActionListener {
 			leather_chest.restockTimer--;
 		}
 		
-		if(playerWeapon == Weapon.woodenSword) {
+		if(thief_hood.restockTimer > 0) {
+			thief_hood.restockTimer--;
+		}
+		
+		if(thief_robe.restockTimer > 0) {
+			thief_robe.restockTimer--;
+		}
+		
+		if(mage_hood.restockTimer > 0) {
+			mage_hood.restockTimer--;
+		}
+		
+		if(mage_robe.restockTimer > 0) {
+			mage_robe.restockTimer--;
+		}
+		
+		if(playerWeapon == "woodenSword") {
 			weaponDamage = 5;
 		}
 		else {
-			if(playerWeapon == Weapon.wand) {
+			if(playerWeapon == "wand") {
 				weaponDamage = 1;
 			}
 			else {
-				if(playerWeapon == Weapon.shank) {
+				if(playerWeapon == "shank") {
 					weaponDamage = 4;
 				}
 			}
@@ -2732,6 +7864,7 @@ public class Game implements ActionListener {
 						
 						if(dialogueSlide > 0) {
 							talkingToCitizen = false;
+							talkingToClerk = false;
 							dialogueSlide = 0;
 						}
 					}
@@ -2751,28 +7884,140 @@ public class Game implements ActionListener {
 		
 		//makes the armor dissapear after it's clicked
 		if(mousemanager.mousex > armorx && mousemanager.mousex < armorx + armorw && mousemanager.mousey > armory && mousemanager.mousey < armory + armorh) {
-			if(mousemanager.isLeftPressed() && armorVisible == true) {
-				armorVisible = false;
-				steal("leather helmet");
-				armorRestock = 125; 
+			if(mousemanager.isLeftPressed() && armorVisible == true && location == "armorer") {
+				if(player.gold >= 10) {
+					player.gold -= 10;
+					armorVisible = false;
+				}
+				else {
+					armorVisible = false;
+				}
 			}
 			else {
 				if(mousemanager.isRightPressed() && armorVisible) {
-					buyMenuVisible = true;
+					armorVisible = false;
+					steal("leather helmet");
+					armorRestock = 125; 
 				}
-			}
-		}
-		else {
-			if(mousemanager.isLeftPressed() || mousemanager.isRightPressed()) {
-				buyMenuVisible = false;
 			}
 		}
 		
 		if(mouseCollided(leather_chest.x,leather_chest.y,leather_chest.w,leather_chest.h)) {
-			if(mousemanager.isLeftPressed() && pressDelay == 0) {
-				//leather_chest.restockTimer = 100000;
-				steal("leather chest");
-				leather_chest.restockTimer = 125;
+			if(mousemanager.isLeftPressed() && pressDelay == 0 && location == "armorer") {
+				buy(leather_chest,"leather chest");
+			}
+			else {
+				if(mousemanager.isRightPressed() && pressDelay == 0 & location == "armorer") {
+					//leather_chest.restockTimer = 100000;
+					steal("leather chest");
+					leather_chest.restockTimer = 125;
+				}
+			}
+		}
+		
+		if(mouseCollided(thief_hood.x,thief_hood.y,thief_hood.w,thief_hood.h)) {
+			if(mousemanager.isLeftPressed() && pressDelay == 0 && location == "armorer") {
+				buy(thief_hood,"thief hood");
+			}
+			else {
+				if(mousemanager.isRightPressed() && pressDelay == 0 & location == "armorer") {
+					//leather_chest.restockTimer = 100000;
+					steal("thief hood");
+					thief_hood.restockTimer = 125;
+				}
+			}
+		}
+		
+		if(mouseCollided(thief_robe.x,thief_robe.y,thief_robe.w,thief_robe.h)) {
+			if(mousemanager.isLeftPressed() && pressDelay == 0 && location == "armorer") {
+				buy(thief_robe,"thief robe");
+			}
+			else {
+				if(mousemanager.isRightPressed() && pressDelay == 0 & location == "armorer") {
+					//leather_chest.restockTimer = 100000;
+					steal("thief robe");
+					thief_robe.restockTimer = 125;
+				}
+			}
+		}
+		
+		if(mouseCollided(mage_hood.x,mage_hood.y,mage_hood.w,mage_hood.h)) {
+			if(mousemanager.isLeftPressed() && pressDelay == 0 && location == "armorer") {
+				buy(mage_hood,"mage hood");
+			}
+			else {
+				if(mousemanager.isRightPressed() && pressDelay == 0 & location == "armorer") {
+					//leather_chest.restockTimer = 100000;
+					steal("mage hood");
+					mage_hood.restockTimer = 125;
+				}
+			}
+		}
+		
+		if(mouseCollided(mage_robe.x,mage_robe.y,mage_robe.w,mage_robe.h)) {
+			if(mousemanager.isLeftPressed() && pressDelay == 0 && location == "armorer") {
+				buy(mage_robe,"mage robe");
+			}
+			else {
+				if(mousemanager.isRightPressed() && pressDelay == 0 & location == "armorer") {
+					//leather_chest.restockTimer = 100000;
+					steal("mage robe");
+					mage_robe.restockTimer = 125;
+				}
+			}
+		}
+		
+		
+		//weapon stealing
+		if(mouseCollided(woodSword.x,woodSword.y,woodSword.w,woodSword.h)) {
+			if(mousemanager.isLeftPressed() && pressDelay == 0 && location == "blacksmith") {
+				buy(woodSword,"woodenSword");
+			}
+			else {
+				if(mousemanager.isRightPressed() && pressDelay == 0 & location == "blacksmith") {
+					//leather_chest.restockTimer = 100000;
+					steal("woodenSword");
+					woodSword.restockTimer = 125;
+				}
+			}
+		}
+		
+		if(mouseCollided(SteelSword.x,SteelSword.y,SteelSword.w,SteelSword.h)) {
+			if(mousemanager.isLeftPressed() && pressDelay == 0 && location == "blacksmith") {
+				buy(SteelSword,"steelSword");
+			}
+			else {
+				if(mousemanager.isRightPressed() && pressDelay == 0 & location == "blacksmith") {
+					//leather_chest.restockTimer = 100000;
+					steal("steelSword");
+					SteelSword.restockTimer = 125;
+				}
+			}
+		}
+		
+		if(mouseCollided(Dagger.x,Dagger.y,Dagger.w,Dagger.h)) {
+			if(mousemanager.isLeftPressed() && pressDelay == 0 && location == "blacksmith") {
+				buy(Dagger,"dagger");
+			}
+			else {
+				if(mousemanager.isRightPressed() && pressDelay == 0 & location == "blacksmith") {
+					//leather_chest.restockTimer = 100000;
+					steal("dagger");
+					Dagger.restockTimer = 125;
+				}
+			}
+		}
+		
+		if(mouseCollided(Shank.x,Shank.y,Shank.w,Shank.h)) {
+			if(mousemanager.isLeftPressed() && pressDelay == 0 && location == "blacksmith") {
+				buy(Shank,"shank");
+			}
+			else {
+				if(mousemanager.isRightPressed() && pressDelay == 0 & location == "blacksmith") {
+					//leather_chest.restockTimer = 100000;
+					steal("shank");
+					Shank.restockTimer = 125;
+				}
 			}
 		}
 		

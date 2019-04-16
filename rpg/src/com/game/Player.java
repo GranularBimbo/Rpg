@@ -17,7 +17,7 @@ public class Player {
 		xp = 0;
 		maxXP = 20;
 		level = 1;
-		gold = 0;
+		gold = 15;
 		speech = 10;
 		xpChange = 50;
 		race = "orc";
