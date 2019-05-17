@@ -43,7 +43,7 @@ public class Game implements ActionListener {
 	public int dialogueSlide, weaponDamage, damage, woodsMonsterChance;
 	public String swapHelm;
 	public String turn;	//who's turn it is to attack
-	public boolean buyMenuVisible, launchingFireball, inventoryVisible;
+	public boolean buyMenuVisible, launchingFireball, inventoryVisible, statsVisible;
 	public boolean talkingToClerk, talkingToGuard, talkingToCitizen, selectingTarget;
 	public int guardRespawn, fireballX, fireballY;
 	public Guard target;
@@ -72,7 +72,8 @@ public class Game implements ActionListener {
 	public Building blackSmith,Armorer,Castle,blackSmith2,Armorer2,Castle2,magicShop;
 
 	//shop items
-	public ShopItem leather_chest,thief_hood,thief_robe,mage_hood,mage_robe,woodSword,SteelSword,Dagger,Shank,Wand,Staff;
+	public ShopItem leather_chest,thief_hood,thief_robe,mage_hood,mage_robe,woodSword,SteelSword,Dagger,Shank;
+	public ShopItem Wand,Staff,steel_chest,steel_helm,steel_leggings,Dagger2,SteelSword2;
 	
 	//people
 	public Person armorerClerk,jim;
@@ -110,29 +111,34 @@ public class Game implements ActionListener {
 	public ImageManager fire_ball;
 	
 	//people images
-	public ImageManager armorClerk;
+	public ImageManager armorClerk, guardImage;
 	
 	//body part images
 	public ImageManager head,torso,legs,toolbar_orc,toolbar_human,toolbar_leather,toolbar_thief,toolbar_hood;
+	public ImageManager toolbar_steel;
 	
-	//inventory items
-	public ImageManager leatherChest_I,mageRobe_I,thiefRobe_I;	// _I will be for inventory items
+	//inventory items (_I will be for inventory items)
+	public ImageManager leatherChest_I,mageRobe_I,thiefRobe_I,steelChest_I,steelLeggings_I;	
 	
 	//armor images
 	public int armorx, armory, armorw, armorh, armorRestock;
 	public boolean armorVisible;
 	
 	//helmets
-	public ImageManager hoodHelm,leatherHelm,thiefHelm;
+	public ImageManager hoodHelm,leatherHelm,thiefHelm,steelHelm;
 	
 	//chest plates
-	public ImageManager leatherChest,thiefChest,robeChest;
+	public ImageManager leatherChest,thiefChest,robeChest,steelChest;
+	
+	//leggings
+	public ImageManager steelLeggings;
 	
 	
 	//button images
 	public ImageManager newGame,newGameActive,left,leftActive,right,rightActive,done,doneActive,ok,okActive;
 	public ImageManager southButton,southButtonActive,northButton,northButtonActive,compass,backpack;
-	public ImageManager magic,diary,diaryActive,backpackActive,magicActive,character,characterActive;
+	public ImageManager magic,diary,diaryActive,backpackActive,magicActive,character,characterActive,no;
+	public ImageManager noActive;
 	
 	//UI
 	public ImageManager bigOrcHead,bigHumanHead,mediumOrc,mediumHuman,bigLeather,bigHood,bigThief,mediumLeather;
@@ -141,7 +147,7 @@ public class Game implements ActionListener {
 	//buttons
 	public Button newGameButton,raceLeft,raceRight,hpLeft,hpRight,strLeft,strRight,luckLeft,luckRight,IntLeft;
 	public Button IntRight,sneakLeft,sneakRight,speechLeft,speechRight,classLeft,classRight,doneButton;
-	public Button playerMenuLeft,playerMenuRight,okButton,south,north,west,east,Diary,Inventory,stats;
+	public Button playerMenuLeft,playerMenuRight,okButton,south,north,west,east,Diary,Inventory,stats,noButton;
 	
 	//player, window, and game state
 	Player player;
@@ -180,6 +186,7 @@ public class Game implements ActionListener {
 		
 		//people
 		armorClerk = new ImageManager("assets/img/people/armorClerk.png");
+		guardImage = new ImageManager("assets/img/people/guard.png");
 		
 		//weapons
 		woodenSword = new ImageManager("assets/img/weapons/woodenSword.png");
@@ -211,6 +218,7 @@ public class Game implements ActionListener {
 		toolbar_leather = new ImageManager("assets/img/toolbar/helmets/leather.png");
 		toolbar_thief = new ImageManager("assets/img/toolbar/helmets/thief.png");
 		toolbar_hood = new ImageManager("assets/img/toolbar/helmets/hood.png");
+		toolbar_steel = new ImageManager("assets/img/toolbar/helmets/steel.png");
 		journal = new ImageManager("assets/img/toolbar/book.png");
 		
 		//locations
@@ -240,6 +248,11 @@ public class Game implements ActionListener {
 		leatherChest_I = new ImageManager("assets/img/inventory/armor/leatherChest.png");
 		mageRobe_I = new ImageManager("assets/img/inventory/armor/mageRobe.png");
 		thiefRobe_I = new ImageManager("assets/img/inventory/armor/thiefRobe.png");
+		steelChest_I = new ImageManager("assets/img/inventory/armor/steelChest.png");
+		steelLeggings_I = new ImageManager("assets/img/inventory/armor/steelLeggings.png");
+		steelChest= new ImageManager("assets/img/armor/chestplates/steel.png");
+		steelHelm = new ImageManager("assets/img/armor/helmets/steel.png");
+		steelLeggings = new ImageManager("assets/img/armor/leggings/steel.png");
 		
 		//buttons
 		newGame = new ImageManager("assets/img/buttons/newGame.png");
@@ -265,6 +278,8 @@ public class Game implements ActionListener {
 		diaryActive = new ImageManager("assets/img/buttons/diaryActive.png");
 		character = new ImageManager("assets/img/buttons/character.png");
 		characterActive = new ImageManager("assets/img/buttons/characterActive.png");
+		no = new ImageManager("assets/img/buttons/no.png");
+		noActive = new ImageManager("assets/img/buttons/noActive.png");
 		
 		this.WIDTH = w;
 		this.HEIGHT = h;
@@ -777,7 +792,7 @@ public class Game implements ActionListener {
 		doneButton = new Button(false,780,620,300,100);
 		playerMenuLeft = new Button(false,32*20 + 10,32*6 + 10,50,50);
 		playerMenuRight = new Button(false,32*20 + 70,32*6 + 10,50,50);
-		okButton = new Button(false,32*8,32*20,50,50);
+		okButton = new Button(false,32*5,32*20,50,50);
 		south = new Button(false,32*35,32*21 - 1,50,50);
 		north = new Button(false,32*35,32*20 - 66,50,50);
 		west = new Button(false,32*34-20,north.y+50,50,50);
@@ -785,6 +800,7 @@ public class Game implements ActionListener {
 		Diary = new Button(false,32*5,32*20,50,50);
 		Inventory = new Button(false,32*7,32*20,50,50);
 		stats = new Button(false,32*9,32*20,50,50);
+		noButton = new Button(false,32*7,32*20,50,50);
 		
 		creatingCharacter = false;
 		wanted = false;
@@ -829,6 +845,14 @@ public class Game implements ActionListener {
 		SteelSword = new ShopItem(32*14,32*4,32,32,50);
 		Shank = new ShopItem(32*16,32*4,32,32,3);
 		Dagger = new ShopItem(32*18,32*4,32,32,20);
+		Wand = new ShopItem(32*10,32*4,32,32,20);
+		Staff = new ShopItem(32*12,32*4,32,64,40);
+		steel_helm = new ShopItem(32*10,32*4,32,32,40);
+		steel_chest = new ShopItem(32*12,32*4,32,32,100);
+		steel_leggings = new ShopItem(32*14,32*4,32,32,75);
+		Dagger2 = new ShopItem(32*10,32*4,32,32,20);
+		SteelSword2 = new ShopItem(32*12,32*4,32,32,50);
+		
 		//enemies
 		chicken = new Enemy(32*16,32*15,32,32,1,10);
 		
@@ -867,7 +891,7 @@ public class Game implements ActionListener {
 		
 		
 		caughtDialogue.addSlide(">> Guard: Stop!");
-		caughtDialogue.addSlide(">> Guard: Pay your fine or serve your sentance.");
+		caughtDialogue.addSlide(">> Guard: Pay your fine or DIE odio eater!");
 		caughtDialogue.addSlide(">> Guard: THEN DIE!");
 		caughtDialogue.addSlide(">> Guard: I hope you learn from your mistakes.");
 		
@@ -1000,6 +1024,13 @@ public class Game implements ActionListener {
 					g.drawImage(backpack.guy, Inventory.x, Inventory.y, null);
 				}
 			}
+			
+			if(stats.active) {
+				g.drawImage(characterActive.guy, stats.x, stats.y, null);
+			}
+			else {
+				g.drawImage(character.guy, stats.x, stats.y, null);
+			}
 		}
 		
 		if(mouseCollided(Inventory.x,Inventory.y,Inventory.w,Inventory.h)) {
@@ -1036,6 +1067,59 @@ public class Game implements ActionListener {
 		}
 		else {
 			Diary.active = false;
+		}
+		
+		if(mouseCollided(stats.x,stats.y,stats.w,stats.h)) {
+			stats.active = true;
+			
+			if(mousemanager.isLeftPressed() && pressDelay == 0) {
+				//show stats
+			}
+		}
+		else {
+			stats.active = false;
+		}
+		
+		
+		if(mouseCollided(noButton.x,noButton.y,noButton.w,noButton.h)) {
+			noButton.active = true;
+			
+			if(mousemanager.isLeftPressed() && pressDelay == 0) {
+				if(talkingToCitizen) {
+					dialogueSlide = 3;
+				}
+				
+				if(talkingToGuard && wanted) {
+					pressDelay = 15;
+					wanted = false;
+					hostile = true;
+					turn = "guard";
+				}
+			}
+		}
+		else {
+			noButton.active = false;
+		}
+		
+		if(dialogueSlide == 15 && weirdTree.finished == false) {
+			questJournal.removeQuest(weirdTree);
+		}
+		
+		if(mouseCollided(steel_helm.x,steel_helm.y,steel_helm.w,steel_helm.h) && location == "armorer2" && steel_helm.restockTimer < 1) {
+			g.setFont(new Font("Times New Roman",Font.BOLD,30));
+			
+			g.setColor(Color.black);
+			g.drawRect(mousemanager.mousex + 20, mousemanager.mousey + 50, 300, 100);
+			
+			g.setColor(Color.gray.darker());
+			g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
+			
+			g.setColor(Color.black);
+			g.drawString("Steel helm: " + steel_helm.price + " gold", mousemanager.mousex + 57, mousemanager.mousey + 110);
+			
+			g.setFont(new Font("Times New Roman",Font.BOLD,16));
+			g.drawString("Left click to buy", mousemanager.mousex + 125, mousemanager.mousey + 130);
+			g.drawString("Right click to steal", mousemanager.mousex + 118, mousemanager.mousey + 145);
 		}
 		
 		if(mousemanager.mousex > armorx && mousemanager.mousex < armorx + armorw && mousemanager.mousey > armory && mousemanager.mousey < armory + armorh && location == "armorer" && armorVisible) {
@@ -1306,11 +1390,11 @@ public class Game implements ActionListener {
 						}
 					}
 					else {
-						if(location == "castle") {
+						if(location == "castle" || location == "castle2") {
 							g.drawImage(castle.guy, 0, 0, null);
 						}
 						else {
-							if(location == "blacksmith") {
+							if(location == "blacksmith" || location == "blacksmith2") {
 								g.drawImage(blacksmith.guy, 0, 0, null);
 								g.drawImage(armorClerk.guy, armorerClerk.x, armorerClerk.y, null);
 							}
@@ -1345,6 +1429,18 @@ public class Game implements ActionListener {
 														else {
 															if(location == "camp") {
 																g.drawImage(camp.guy, 0, 0, null);
+															}
+															else {
+																if(location == "armorer2") {
+																	g.drawImage(armorer.guy,0,0,null);
+																	g.drawImage(armorClerk.guy, armorerClerk.x, armorerClerk.y, null);
+																}
+																else {
+																	if(location == "magic shop") {
+																		g.drawImage(armorer.guy,0,0,null);
+																		g.drawImage(armorClerk.guy, armorerClerk.x, armorerClerk.y, null);
+																	}
+																}
 															}
 														}
 													}
@@ -1399,6 +1495,18 @@ public class Game implements ActionListener {
 			
 			if(location == "blacksmith" && Shank.restockTimer == 0) {
 				g.drawImage(shank_I.guy, Shank.x, Shank.y, null);
+			}
+			
+			if(location == "armorer2" && steel_chest.restockTimer == 0) {
+				g.drawImage(steelChest_I.guy,steel_chest.x,steel_chest.y,null);
+			}
+			
+			if(location == "armorer2" && steel_helm.restockTimer == 0) {
+				g.drawImage(steelHelm.guy,steel_helm.x,steel_helm.y,null);
+			}
+			
+			if(location == "armorer2" && steel_leggings.restockTimer == 0) {
+				g.drawImage(steelLeggings_I.guy,steel_leggings.x,steel_leggings.y,null);
 			}
 			
 			
@@ -1600,12 +1708,13 @@ public class Game implements ActionListener {
 				}
 			}
 			
-			if(dialogueSlide == 0 || dialogueSlide == 1 || dialogueSlide == 2) {
+			if(talkingToGuard) {
 				if(wanted && location == "town" && guard.hp > 0) {
 					g.drawImage(toolbar_human.guy, 2, HEIGHT - 149, null);
-					g.drawImage(toolbar_leather.guy, 2, HEIGHT - 149, null);
+					g.drawImage(toolbar_steel.guy, 2, HEIGHT - 145, null);
 				}
 			}
+			
 			
 			if(dialogueSlide < 5) {
 				if(location == "armorer" || location == "town" || location == "blacksmith") {
@@ -1716,7 +1825,7 @@ public class Game implements ActionListener {
 			}
 			
 			if(location == "town" && guard.hp > 0) {
-				g.drawImage(armorClerk.guy, guard.x, guard.y, null);
+				g.drawImage(guardImage.guy, guard.x, guard.y, null);
 			}
 			
 			if(location == jim.location) {
@@ -1750,6 +1859,17 @@ public class Game implements ActionListener {
 				}
 			}
 			
+			if(talkingToGuard && wanted) {
+				if(chopped == -3 && dialogueSlide != 3) {
+					if(noButton.active) {
+						g.drawImage(noActive.guy, noButton.x, noButton.y, null);
+					}
+					else {
+						g.drawImage(no.guy, noButton.x, noButton.y, null);
+					}
+				}
+			}
+			
 			if(weirdTree.finished) {
 				if(talkingToCitizen && dialogueSlide > -1 && dialogueSlide < 1) {	//this if statement will change as more towns are added
 					if(okButton.active) {
@@ -1767,6 +1887,15 @@ public class Game implements ActionListener {
 					}
 					else {
 						g.drawImage(ok.guy, okButton.x, okButton.y, null);
+					}
+				}
+				
+				if(chopped == -3 && dialogueSlide != 3) {
+					if(noButton.active) {
+						g.drawImage(noActive.guy, noButton.x, noButton.y, null);
+					}
+					else {
+						g.drawImage(no.guy, noButton.x, noButton.y, null);
 					}
 				}
 			}
@@ -1806,15 +1935,10 @@ public class Game implements ActionListener {
 			if(location == "woods2") {
 				predictor.calcPercentError(13, surroundingLocations);
 				predictor.predict(13,surroundingLocations);
-				System.out.println("left: " + surroundingLocations[0]);
-				System.out.println("top: " + surroundingLocations[1]);
-				System.out.println("right: " + surroundingLocations[2]);
-				System.out.println("bottom: " + surroundingLocations[3]);
-				System.out.println("percent error: " + predictor.percentError );
 			}
 			
 			
-			if(location == "woods") {
+			if(location == "woods" && chopped == -3) {
 				if(mouseCollided(32*3,32*3,32,32) && weirdTree.finished == false) {	//chopping down weird tree
 					g.setFont(new Font("Times New Roman",Font.BOLD,30));
 					
@@ -1825,13 +1949,13 @@ public class Game implements ActionListener {
 					g.fillRect(mousemanager.mousex + 21, mousemanager.mousey + 51, 299, 99);
 					
 					g.setColor(Color.black);
-					g.drawString("Weird tree", mousemanager.mousex + 47, mousemanager.mousey + 110);
+					g.drawString("Weird tree", mousemanager.mousex + 100, mousemanager.mousey + 110);
 					
 					g.setFont(new Font("Times New Roman",Font.BOLD,16));
 					g.drawString("click to chop", mousemanager.mousex + 125, mousemanager.mousey + 130);
 					
 					if(mousemanager.isLeftPressed() && pressDelay == 0) {
-						chopped = 5000;
+						chopped = 10000;
 						pressDelay = 15;
 					}
 				}
@@ -2437,7 +2561,7 @@ public class Game implements ActionListener {
 						}
 						
 						location = "blacksmith";
-						caught = player.sneak;
+						caught = 20;
 						talkingToCitizen = false;
 						dialogueSlide = 0;
 						
@@ -2512,10 +2636,31 @@ public class Game implements ActionListener {
 									talkingToCitizen = false;
 									pressDelay = 15;
 									dialogueSlide = 0;
+								}
+							}
+						}
+						else {
+							if(location == "castle2" || location == "blacksmith2" || location == "armorer2" || location == "magic shop") {
+								if(mousemanager.mousex > 32*16 && mousemanager.mousex < 32*17 && mousemanager.mousey > HEIGHT-181 && mousemanager.mousey < HEIGHT-149) {
+									g.setFont(new Font("Times New Roman",Font.BOLD,30));
 									
-									if(wanted) {
-										hostile = true;
-										wanted = false;
+									g.setColor(Color.black);
+									g.drawRect(mousemanager.mousex + 20, mousemanager.mousey - 120, 300, 100);
+									
+									g.setColor(Color.gray.darker());
+									g.fillRect(mousemanager.mousex + 21, mousemanager.mousey - 121, 299, 99);
+									
+									g.setColor(Color.black);
+									g.drawString("Town", mousemanager.mousex + 130, mousemanager.mousey - 65);
+									
+									g.setFont(new Font("Times New Roman",Font.BOLD,16));
+									g.drawString("click to enter", mousemanager.mousex + 125, mousemanager.mousey - 45);
+									
+									if(mousemanager.isLeftPressed()) {
+										location = "town2";
+										talkingToCitizen = false;
+										pressDelay = 15;
+										dialogueSlide = 0;
 									}
 								}
 							}
@@ -2996,8 +3141,33 @@ public class Game implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {	//all game logic goes in here
+		//change this later to loading previous save game
+		if(player.hp <= 0) {	//player death
+			player = new Player();
+			questJournal = new Journal();
+			location = "town";
+			hostile = false;
+			wanted = false;
+			chopped = -3;
+			weirdTree.finished = false;
+			skillPoints = 3;
+			dialogueSlide = 0;
+			inventoryVisible = true;
+			creatingCharacter = false;
+			state = "main menu";
+		}
+		
 		if(pressDelay > 0) {	//delay so buttons dont regester like 50 clicks instead of just 1
 			pressDelay--;
+		}
+		
+		if(jim.moveTimer > 0) {
+			jim.moveTimer--;
+		}
+		
+		if(jim.moveTimer == 0 && location != jim.location) {
+			jim.setLocation("town");
+			jim.moveTimer = 2000;
 		}
 		
 		if(chopped > 0) {
@@ -3067,8 +3237,15 @@ public class Game implements ActionListener {
 				
 				if(mousemanager.isLeftPressed() && pressDelay == 0) {
 					if(dialogueSlide > -1 && dialogueSlide != 2) {	//change back to 1 later when i add decisions
-						dialogueSlide++;
-						pressDelay = 15;
+						if(dialogueSlide == 3 && chopped == -3 && talkingToCitizen) {
+							dialogueSlide = 0;
+							talkingToCitizen = false;
+							pressDelay = 15;
+						}
+						else {
+							dialogueSlide++;
+							pressDelay = 15;
+						}
 					}
 				}
 			}
@@ -3098,6 +3275,7 @@ public class Game implements ActionListener {
 			}
 		}
 		
+		
 		if(talkingToCitizen) {
 			if(mouseCollided(okButton.x,okButton.y,okButton.w,okButton.h)) {
 				okButton.active = true;
@@ -3107,6 +3285,10 @@ public class Game implements ActionListener {
 						dialogueSlide++;
 						pressDelay = 15;
 						
+						if(dialogueSlide == 4) {
+							dialogueSlide = 15;
+						}
+						
 						if(weirdTree.finished) {
 							if(dialogueSlide > 0) {
 								talkingToCitizen = false;
@@ -3115,7 +3297,7 @@ public class Game implements ActionListener {
 							}
 						}
 						else {
-							if(dialogueSlide >= 3) {
+							if(dialogueSlide >= 3 && dialogueSlide < 15) {
 								talkingToCitizen = false;
 								talkingToClerk = false;
 								questJournal.addQuest(weirdTree);
@@ -3128,6 +3310,14 @@ public class Game implements ActionListener {
 									questJournal.removeQuest(weirdTree);
 								}
 							}
+							else {
+								if(dialogueSlide == 15) {
+									talkingToCitizen = false;
+									talkingToClerk = false;
+									questJournal.removeQuest(weirdTree);
+									dialogueSlide = 0;
+								}
+							}
 						}
 					}
 				}
@@ -3136,6 +3326,7 @@ public class Game implements ActionListener {
 				okButton.active = false;
 			}
 		}
+		
 		
 		//caught is chosen randomly based on the player's sneak stat, this catches you if it is below 10
 		//so if you have 10 sneak you have a 10% or 1/10 chance to get away with it
