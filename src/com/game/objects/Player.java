@@ -1,13 +1,18 @@
 package com.game.objects;
 
 public class Player {
-	public int hp,maxHP,str,luck,Int,sneak,xp,maxXP,level,gold,speech,mana,maxMana,manaGain,manaRegenTimer;
+	public int hp,maxHP,str,luck,Int,sneak,xp,maxXP,level,gold,speech,mana,maxMana,manaGain,manaRegenTimer,fine;
+	public int x,y,w,h;
 	public double xpChange;
 	public String race,Class,helmet,chest,legs;	//helmet chest and legs are for what kind of armor you are wearing
 	public String[] inventory;
 	public String[] spells;
 	
 	public Player() {
+		x = 32*16;
+		y = 32*10;
+		w = 32;
+		h = 64;
 		hp = 50;
 		maxHP = 50;
 		str = 10;
@@ -25,6 +30,7 @@ public class Player {
 		manaRegenTimer = -3;
 		mana = maxMana;
 		race = "orc";
+		fine = 0;
 		Class = "warrior";
 		helmet = "";	//this will decide which kind of helmet you have, so you can wear any kind
 		
